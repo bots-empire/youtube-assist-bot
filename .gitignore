@@ -1,0 +1,5 @@
+.idea
+./services/admin
+cfg/tokens.json
+cfg/db_config.go
+voice-assist-bot
