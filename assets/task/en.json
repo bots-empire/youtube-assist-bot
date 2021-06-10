@@ -1,0 +1,21 @@
+{
+  "Partition": {
+    "advertisement": null,
+    "tiktok": [
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAO0YL_wfJSrSf3oruz28UuqoHTA24IAAisMAAKx_wABSqFML6ikeKZnHwQ",
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ],
+    "youtube": [
+      {
+        "Url": "https://youtu.be/v7pZYal9608",
+        "FileID": "",
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "/start": "/start",
+  "/exit": "/start",
+  "withdraw_cancel": "/start",
+  "/admin": "/admin",
+  "main_make_money": "/main_make_money",
+  "main_spend_money": "/main_spend_money",
+  "spend_money_withdrawal": "/spend_money_withdrawal",
+  "spend_money_promotion": "/promotion_choice",
+  "main_profile": "/main_profile",
+  "main_statistic": "/main_statistic",
+  "main_money_for_a_friend": "/main_money_for_a_friend",
+  "main_more_money": "/main_more_money",
+  "make_money_youtube": "/make_money_youtube?",
+  "make_money_tiktok": "/make_money_tiktok?",
+  "make_money_advertisement": "/make_money_advertisement?",
+  "back_to_main_menu_button": "/start",
+  "admin_log_out_text": "/admin_log_out",
+  "back_to_make_money_button": "/main_make_money",
+  "paypal_method": "/paypal_method",
+  "credit_card_method": "/credit_card_method",
+
+  "back_to_advertisement_setting": "/advertisement_setting"
+}

@@ -1,0 +1,524 @@
+package services
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/bots"
+	"github.com/Stepan1328/youtube-assist-bot/db"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
+	"github.com/Stepan1328/youtube-assist-bot/services/auth"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+)
+
+type MessagesHandlers struct {
+	Handlers map[string]bots.Handler
+}
+
+func (h *MessagesHandlers) GetHandler(command string) bots.Handler {
+	return h.Handlers[command]
+}
+
+func (h *MessagesHandlers) Init() {
+	//Start command
+	h.OnCommand("/start", NewStartCommand())
+	h.OnCommand("/admin", administrator.NewAdminCommand())
+
+	//Main command
+	h.OnCommand("/main_make_money", NewMakeMoneyCommand())
+	//h.OnCommand("/main_spend_money", NewSpendMoneyCommand())
+	h.OnCommand("/main_profile", NewSendProfileCommand())
+	h.OnCommand("/main_money_for_a_friend", NewMoneyForAFriendCommand())
+	h.OnCommand("/main_statistic", NewSendStatisticsCommand())
+	h.OnCommand("/main_more_money", NewMoreMoneyCommand())
+
+	//Make money command
+	h.OnCommand("/make_money_youtube?", NewYoutubeTaskCommand())
+	h.OnCommand("/make_money_tiktok?", NewYoutubeTaskCommand())
+	h.OnCommand("/make_money_advertisement?", NewYoutubeTaskCommand())
+
+	//Spend money command
+	h.OnCommand("/spend_money_withdrawal", NewSpendMoneyWithdrawalCommand())
+	h.OnCommand("/paypal_method", NewPaypalReqCommand())
+	h.OnCommand("/credit_card_method", NewCreditCardReqCommand())
+	h.OnCommand("/withdrawal_req_amount", NewReqWithdrawalAmountCommand())
+	h.OnCommand("/withdrawal_exit", NewWithdrawalAmountCommand())
+	//h.OnCommand("/promotion_choice", NewPromotionCommand())
+	//h.OnCommand("/promotion_case", NewPromotionCaseAnswerCommand())
+
+	//Log out command
+	h.OnCommand("/admin_log_out", NewAdminLogOutCommand())
+
+	log.Println("Messages Handlers Initialized")
+}
+
+func (h *MessagesHandlers) OnCommand(command string, handler bots.Handler) {
+	h.Handlers[command] = handler
+}
+
+func ActionsWithUpdates(botLang string, updates tgbotapi.UpdatesChannel) {
+	for update := range updates {
+		checkUpdate(botLang, &update)
+	}
+}
+
+func checkUpdate(botLang string, update *tgbotapi.Update) {
+	if update.Message == nil && update.CallbackQuery == nil {
+		return
+	}
+
+	if update.Message != nil {
+		auth.CheckingTheUser(botLang, update.Message)
+
+		checkMessage(createSituationFromMsg(botLang, update.Message))
+		return
+	}
+
+	if update.CallbackQuery != nil {
+		checkCallbackQuery(createSituationFromCallback(botLang, update.CallbackQuery))
+		return
+	}
+}
+
+func createSituationFromMsg(botLang string, message *tgbotapi.Message) bots.Situation {
+	return bots.Situation{
+		Message:  message,
+		BotLang:  botLang,
+		UserID:   message.From.ID,
+		UserLang: auth.GetLang(botLang, message.From.ID),
+		Params: bots.Parameters{
+			Level: db.GetLevel(botLang, message.From.ID),
+		},
+	}
+}
+
+func createSituationFromCallback(botLang string, callbackQuery *tgbotapi.CallbackQuery) bots.Situation {
+	return bots.Situation{
+		CallbackQuery: callbackQuery,
+		BotLang:       botLang,
+		UserID:        callbackQuery.From.ID,
+		UserLang:      auth.GetLang(botLang, callbackQuery.From.ID),
+		Command:       strings.Split(callbackQuery.Data, "?")[0],
+		Params: bots.Parameters{
+			Level: db.GetLevel(botLang, callbackQuery.From.ID),
+		},
+	}
+}
+
+func checkMessage(situation bots.Situation) {
+	if situation.Message.Video != nil {
+		bytes, err := json.MarshalIndent(situation.Message.Video, "", "  ")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		fmt.Println(string(bytes))
+	}
+
+	//videoCfg := tgbotapi.NewVideoShare(int64(situation.UserID), "BAACAgIAAxkBAAPDYL94KWnCVYTMMAAB66fmMNkVjTTjAAI5DgACfmsAAUq3ED2J3XonXR8E")
+	//
+	//_, err := bots.Bots[situation.BotLang].Bot.Send(videoCfg)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+
+	//member, err := bots.Bots[situation.BotLang].Bot.GetChatMember(tgbotapi.ChatConfigWithUser{
+	//	ChatID:             -1001204209432,
+	//	SuperGroupUsername: "",
+	//	UserID:             situation.UserID,
+	//})
+	//
+	//if err == nil {
+	//	fmt.Println(member.Status)
+	//}
+
+	if situation.Command == "" {
+		situation.Command, situation.Err = assets.GetCommandFromText(situation)
+	}
+
+	if situation.Err == nil {
+		Handler := bots.Bots[situation.BotLang].MessageHandler.
+			GetHandler(situation.Command)
+
+		if Handler != nil {
+			Handler.Serve(situation)
+			return
+		}
+	}
+
+	situation.Command = strings.Split(situation.Params.Level, "?")[0]
+
+	Handler := bots.Bots[situation.BotLang].MessageHandler.
+		GetHandler(situation.Command)
+
+	if Handler != nil {
+		Handler.Serve(situation)
+		return
+	}
+
+	if administrator.CheckAdminMessage(situation) {
+		return
+	}
+
+	emptyLevel(situation.BotLang, situation.Message, situation.UserLang)
+	log.Println(situation.Err)
+}
+
+func emptyLevel(botLang string, message *tgbotapi.Message, lang string) {
+	msg := tgbotapi.NewMessage(message.Chat.ID, assets.LangText(lang, "user_msg_dont_recognize"))
+	msgs2.SendMsgToUser(botLang, msg)
+}
+
+type StartCommand struct {
+}
+
+func NewStartCommand() *StartCommand {
+	return &StartCommand{}
+}
+
+func (c *StartCommand) Serve(s bots.Situation) {
+	text := assets.LangText(s.UserLang, "main_select_menu")
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), text)
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("main_make_money")),
+		msgs2.NewRow(msgs2.NewDataButton("spend_money_withdrawal")),
+		//msgs2.NewRow(msgs2.NewDataButton("main_spend_money")),
+		msgs2.NewRow(msgs2.NewDataButton("main_money_for_a_friend"),
+			msgs2.NewDataButton("main_more_money")),
+		msgs2.NewRow(msgs2.NewDataButton("main_profile"),
+			msgs2.NewDataButton("main_statistic")),
+	).Build(s.UserLang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type MakeMoneyCommand struct {
+}
+
+func NewMakeMoneyCommand() *MakeMoneyCommand {
+	return &MakeMoneyCommand{}
+}
+
+func (c *MakeMoneyCommand) Serve(s bots.Situation) {
+	text := assets.LangText(s.UserLang, "make_money_text")
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), text)
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("make_money_youtube")),
+		msgs2.NewRow(msgs2.NewDataButton("make_money_tiktok")),
+		msgs2.NewRow(msgs2.NewDataButton("make_money_advertisement")),
+		msgs2.NewRow(msgs2.NewDataButton("back_to_main_menu_button")),
+	).Build(s.UserLang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type YoutubeTaskCommand struct {
+}
+
+func NewYoutubeTaskCommand() *YoutubeTaskCommand {
+	return &YoutubeTaskCommand{}
+}
+
+func (c *YoutubeTaskCommand) Serve(s bots.Situation) {
+	user := auth.GetUser(s.BotLang, s.UserID)
+
+	data := strings.Split(strings.Replace(s.Command, "/make_money_", "", 1), "?")
+	s.Params.Partition = data[0]
+	breakTime, err := strconv.Atoi(data[1])
+	if err != nil {
+		log.Println(err)
+	}
+	user.MakeMoney(s, int64(breakTime))
+}
+
+type SpendMoneyCommand struct {
+}
+
+func NewSpendMoneyCommand() *SpendMoneyCommand {
+	return &SpendMoneyCommand{}
+}
+
+func (c *SpendMoneyCommand) Serve(s bots.Situation) {
+	text := assets.LangText(s.UserLang, "make_money_text")
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), text)
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("spend_money_withdrawal")),
+		msgs2.NewRow(msgs2.NewDataButton("spend_money_promotion")),
+		msgs2.NewRow(msgs2.NewDataButton("back_to_main_menu_button")),
+	).Build(s.UserLang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type SpendMoneyWithdrawalCommand struct {
+}
+
+func NewSpendMoneyWithdrawalCommand() *SpendMoneyWithdrawalCommand {
+	return &SpendMoneyWithdrawalCommand{}
+}
+
+func (c *SpendMoneyWithdrawalCommand) Serve(s bots.Situation) {
+	user := auth.GetUser(s.BotLang, s.UserID)
+	db.RdbSetUser(s.BotLang, s.UserID, "withdrawal")
+
+	text := msgs2.GetFormatText(user.Language, "withdrawal_money", user.Balance)
+	markup := msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("paypal_method"),
+			msgs2.NewDataButton("credit_card_method")),
+		msgs2.NewRow(msgs2.NewDataButton("back_to_main_menu_button")),
+	).Build(s.UserLang)
+
+	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), &markup, text)
+}
+
+type PaypalReqCommand struct {
+}
+
+func NewPaypalReqCommand() *PaypalReqCommand {
+	return &PaypalReqCommand{}
+}
+
+func (c *PaypalReqCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "/withdrawal_req_amount")
+
+	lang := auth.GetLang(s.BotLang, s.UserID)
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "paypal_email"))
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
+	).Build(lang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type CreditCardReqCommand struct {
+}
+
+func NewCreditCardReqCommand() *CreditCardReqCommand {
+	return &CreditCardReqCommand{}
+}
+
+func (c *CreditCardReqCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "/withdrawal_req_amount")
+
+	lang := auth.GetLang(s.BotLang, s.UserID)
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "credit_card_number"))
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
+	).Build(lang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type ReqWithdrawalAmountCommand struct {
+}
+
+func NewReqWithdrawalAmountCommand() *ReqWithdrawalAmountCommand {
+	return &ReqWithdrawalAmountCommand{}
+}
+
+func (c *ReqWithdrawalAmountCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "/withdrawal_exit")
+
+	lang := auth.GetLang(s.BotLang, s.UserID)
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "req_withdrawal_amount"))
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type WithdrawalAmountCommand struct {
+}
+
+func NewWithdrawalAmountCommand() *WithdrawalAmountCommand {
+	return &WithdrawalAmountCommand{}
+}
+
+func (c *WithdrawalAmountCommand) Serve(s bots.Situation) {
+	user := auth.GetUser(s.BotLang, s.UserID)
+	if user.WithdrawMoneyFromBalance(s.BotLang, s.Message.Text) {
+		db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+		sendMainMenu(s)
+	}
+}
+
+type SendProfileCommand struct {
+}
+
+func NewSendProfileCommand() *SendProfileCommand {
+	return &SendProfileCommand{}
+}
+
+func (c *SendProfileCommand) Serve(s bots.Situation) {
+	user := auth.GetUser(s.BotLang, s.UserID)
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+	text := msgs2.GetFormatText(user.Language, "profile_text",
+		s.Message.From.FirstName, user.Balance, user.Completed, user.ReferralCount)
+
+	markUp := msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlDataButton("change_lang_button", "/send_change_lang")),
+	).Build(user.Language)
+
+	msgs2.NewParseMarkUpMessage(s.BotLang, int64(user.ID), markUp, text)
+}
+
+type SendStatisticsCommand struct {
+}
+
+func NewSendStatisticsCommand() *SendStatisticsCommand {
+	return &SendStatisticsCommand{}
+}
+
+func (c *SendStatisticsCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+	text := assets.LangText(s.UserLang, "statistic_to_user")
+
+	text = fillDate(text)
+	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+}
+
+type MoneyForAFriendCommand struct {
+}
+
+func NewMoneyForAFriendCommand() *MoneyForAFriendCommand {
+	return &MoneyForAFriendCommand{}
+}
+
+func (c *MoneyForAFriendCommand) Serve(s bots.Situation) {
+	user := auth.GetUser(s.BotLang, s.UserID)
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+	text := msgs2.GetFormatText(user.Language, "referral_text", bots.GetGlobalBot(s.BotLang).BotLink,
+		user.ID, assets.AdminSettings.ReferralAmount, user.ReferralCount)
+
+	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+}
+
+type MoreMoneyCommand struct {
+}
+
+func NewMoreMoneyCommand() *MoreMoneyCommand {
+	return &MoreMoneyCommand{}
+}
+
+func (c *MoreMoneyCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+	text := msgs2.GetFormatText(s.UserLang, "more_money_text",
+		assets.AdminSettings.BonusAmount)
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), text)
+	msg.ReplyMarkup = msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlURLButton("advertising_button", assets.AdminSettings.AdvertisingURL[s.UserLang])),
+		msgs2.NewIlRow(msgs2.NewIlDataButton("get_bonus_button", "/send_bonus_to_user")),
+	).Build(s.UserLang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type PromotionCommand struct {
+}
+
+func NewPromotionCommand() *PromotionCommand {
+	return &PromotionCommand{}
+}
+
+func (c *PromotionCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "main")
+	text := assets.LangText(s.UserLang, "promotion_main_text")
+
+	markUp := msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlDataButton("promotion_case_1", "/promotion_case?500")),
+		msgs2.NewIlRow(msgs2.NewIlDataButton("promotion_case_2", "/promotion_case?1200")),
+		msgs2.NewIlRow(msgs2.NewIlDataButton("promotion_case_3", "/promotion_case?2000")),
+	).Build(s.UserLang)
+
+	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+}
+
+type PromotionCaseAnswerCommand struct {
+}
+
+func NewPromotionCaseAnswerCommand() *PromotionCaseAnswerCommand {
+	return &PromotionCaseAnswerCommand{}
+}
+
+func (c *PromotionCaseAnswerCommand) Serve(s bots.Situation) {
+	cost, err := strconv.Atoi(strings.Split(s.Params.Level, "?")[1])
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	user := auth.GetUser(s.BotLang, s.UserID)
+	if user.Balance < cost {
+		smtWentWrong(s)
+
+		sendMainMenu(s)
+		return
+	}
+	user.Balance -= cost
+	dataBase := bots.GetDB(s.BotLang)
+	_, err = dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", user.Balance, user.ID)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "promotion_successfully_order"))
+	msgs2.SendMsgToUser(s.BotLang, msg)
+
+	sendMainMenu(s)
+}
+
+func smtWentWrong(s bots.Situation) {
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "something_went_wrong"))
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type AdminLogOutCommand struct {
+}
+
+func NewAdminLogOutCommand() *AdminLogOutCommand {
+	return &AdminLogOutCommand{}
+}
+
+func (c *AdminLogOutCommand) Serve(s bots.Situation) {
+	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	simpleAdminMsg(s, "admin_log_out")
+
+	sendMainMenu(s)
+}
+
+func simpleAdminMsg(s bots.Situation, key string) {
+	text := assets.AdminText(s.UserLang, key)
+	msg := tgbotapi.NewMessage(int64(s.UserID), text)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+func sendMainMenu(s bots.Situation) {
+	s.Command = "/start"
+	s.Err = nil
+	checkMessage(s) //Send start menu
+}
+
+func fillDate(text string) string {
+	currentTime := time.Now()
+	formatTime := currentTime.Format("02.01.2006 15.04")
+
+	users := currentTime.Unix()/6000 - 265000
+	totalEarned := currentTime.Unix()/5*5 - 1622000000
+	totalVoice := totalEarned / 7
+	return fmt.Sprintf(text, formatTime, users, totalEarned, totalVoice)
+}
