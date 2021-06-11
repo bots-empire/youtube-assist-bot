@@ -49,3 +49,15 @@ func countBlockedUsers() int {
 	}
 	return count
 }
+
+func countSubscribers() int {
+	var sum int
+	for _, handler := range bots.Bots {
+		rows, err := handler.DataBase.Query("SELECT COUNT(*) FROM subs;")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		sum += readRows(rows)
+	}
+	return sum
+}

@@ -218,6 +218,7 @@ func (u *User) GetABonus(s bots.Situation) {
 }
 
 func (u *User) CheckSubscribe(s bots.Situation) bool {
+	fmt.Println(assets.AdminSettings.AdvertisingChan[s.BotLang].ChannelID)
 	member, err := bots.Bots[s.BotLang].Bot.GetChatMember(tgbotapi.ChatConfigWithUser{
 		ChatID: assets.AdminSettings.AdvertisingChan[s.BotLang].ChannelID,
 		UserID: s.UserID,

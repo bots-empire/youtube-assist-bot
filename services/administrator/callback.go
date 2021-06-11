@@ -389,8 +389,9 @@ func (c *StatisticCommand) Serve(s bots.Situation) {
 	count := countUsers(s.BotLang)
 	allCount := countAllUsers()
 	blocked := countBlockedUsers()
+	subscribers := countSubscribers()
 	text := adminFormatText(lang, "statistic_text",
-		allCount, count, blocked, count-blocked)
+		allCount, count, blocked, subscribers, count-blocked)
 
 	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
 	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
