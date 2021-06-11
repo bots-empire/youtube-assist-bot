@@ -317,7 +317,7 @@ func (c *ChangeTextUrlCommand) Serve(s bots.Situation) {
 		value = assets.AdminSettings.AdvertisingText[parameters[2]]
 	case "change_url":
 		key = "set_new_url_text"
-		value = assets.AdminSettings.AdvertisingURL[parameters[2]]
+		value = assets.AdminSettings.AdvertisingChan[parameters[2]].Url
 	}
 
 	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text_url?"+parameters[1]+"?"+parameters[2])

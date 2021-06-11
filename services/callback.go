@@ -24,7 +24,11 @@ func (h *CallBackHandlers) GetHandler(command string) bots.Handler {
 func (h *CallBackHandlers) Init() {
 	//Money command
 	h.OnCommand("/send_bonus_to_user", NewGetBonusCommand())
+	h.OnCommand("/make_money_advertisement", NewRepeatTaskCommand())
+	h.OnCommand("/make_money_youtube", NewRepeatTaskCommand())
+	h.OnCommand("/make_money_tiktok", NewRepeatTaskCommand())
 	//h.OnCommand("/withdrawal_main", NewWithdrawalMainCommand())
+	h.OnCommand("/withdrawal_money", NewRecheckSubscribeCommand())
 	h.OnCommand("/promotion_case", NewPromotionCaseCommand())
 
 	//Change language command
@@ -62,7 +66,21 @@ func NewGetBonusCommand() *GetBonusCommand {
 func (c *GetBonusCommand) Serve(s bots.Situation) {
 	user := auth.GetUser(s.BotLang, s.UserID)
 
-	user.GetABonus(s.BotLang)
+	user.GetABonus(s)
+}
+
+type RepeatTaskCommand struct {
+}
+
+func NewRepeatTaskCommand() *RepeatTaskCommand {
+	return &RepeatTaskCommand{}
+}
+
+func (c *RepeatTaskCommand) Serve(s bots.Situation) {
+	s.Command = strings.Split(s.CallbackQuery.Data, "?")[0] + "?"
+
+	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "watch_previous_video")
+	checkMessage(s)
 }
 
 type WithdrawalMainCommand struct {
@@ -125,6 +143,22 @@ func setLanguage(s bots.Situation, newLang string) {
 	checkMessage(s)
 }
 
+type RecheckSubscribeCommand struct {
+}
+
+func NewRecheckSubscribeCommand() *RecheckSubscribeCommand {
+	return &RecheckSubscribeCommand{}
+}
+
+func (c *RecheckSubscribeCommand) Serve(s bots.Situation) {
+	amount := strings.Split(s.CallbackQuery.Data, "?")[1]
+	s.Message = &tgbotapi.Message{
+		Text: amount,
+	}
+	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "invitation_to_subscribe")
+	checkMessage(s)
+}
+
 type PromotionCaseCommand struct {
 }
 
@@ -178,7 +212,6 @@ func (c *SendLanguageCommand) Serve(s bots.Situation) {
 	}
 
 	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "make_a_choice")
-
 	db.RdbSetTemporary(s.BotLang, s.UserID, data.MessageID)
 }
 

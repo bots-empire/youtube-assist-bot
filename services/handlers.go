@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
@@ -38,9 +37,9 @@ func (h *MessagesHandlers) Init() {
 	h.OnCommand("/main_more_money", NewMoreMoneyCommand())
 
 	//Make money command
-	h.OnCommand("/make_money_youtube?", NewYoutubeTaskCommand())
-	h.OnCommand("/make_money_tiktok?", NewYoutubeTaskCommand())
-	h.OnCommand("/make_money_advertisement?", NewYoutubeTaskCommand())
+	h.OnCommand("/make_money_youtube?", NewLinkTaskCommand())
+	h.OnCommand("/make_money_tiktok?", NewVideoTaskCommand())
+	h.OnCommand("/make_money_advertisement?", NewVideoTaskCommand())
 
 	//Spend money command
 	h.OnCommand("/spend_money_withdrawal", NewSpendMoneyWithdrawalCommand())
@@ -111,32 +110,6 @@ func createSituationFromCallback(botLang string, callbackQuery *tgbotapi.Callbac
 }
 
 func checkMessage(situation bots.Situation) {
-	if situation.Message.Video != nil {
-		bytes, err := json.MarshalIndent(situation.Message.Video, "", "  ")
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		fmt.Println(string(bytes))
-	}
-
-	//videoCfg := tgbotapi.NewVideoShare(int64(situation.UserID), "BAACAgIAAxkBAAPDYL94KWnCVYTMMAAB66fmMNkVjTTjAAI5DgACfmsAAUq3ED2J3XonXR8E")
-	//
-	//_, err := bots.Bots[situation.BotLang].Bot.Send(videoCfg)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-
-	//member, err := bots.Bots[situation.BotLang].Bot.GetChatMember(tgbotapi.ChatConfigWithUser{
-	//	ChatID:             -1001204209432,
-	//	SuperGroupUsername: "",
-	//	UserID:             situation.UserID,
-	//})
-	//
-	//if err == nil {
-	//	fmt.Println(member.Status)
-	//}
-
 	if situation.Command == "" {
 		situation.Command, situation.Err = assets.GetCommandFromText(situation)
 	}
@@ -221,23 +194,43 @@ func (c *MakeMoneyCommand) Serve(s bots.Situation) {
 	msgs2.SendMsgToUser(s.BotLang, msg)
 }
 
-type YoutubeTaskCommand struct {
+type LinkTaskCommand struct {
 }
 
-func NewYoutubeTaskCommand() *YoutubeTaskCommand {
-	return &YoutubeTaskCommand{}
+func NewLinkTaskCommand() *LinkTaskCommand {
+	return &LinkTaskCommand{}
 }
 
-func (c *YoutubeTaskCommand) Serve(s bots.Situation) {
+func (c *LinkTaskCommand) Serve(s bots.Situation) {
 	user := auth.GetUser(s.BotLang, s.UserID)
 
-	data := strings.Split(strings.Replace(s.Command, "/make_money_", "", 1), "?")
-	s.Params.Partition = data[0]
-	breakTime, err := strconv.Atoi(data[1])
-	if err != nil {
-		log.Println(err)
+	s.Params.Partition = strings.Split(strings.Replace(s.Command, "/make_money_", "", 1), "?")[0]
+	user.MakeMoney(s, assets.AdminSettings.SecondBetweenViews)
+}
+
+type VideoTaskCommand struct {
+}
+
+func NewVideoTaskCommand() *VideoTaskCommand {
+	return &VideoTaskCommand{}
+}
+
+func (c *VideoTaskCommand) Serve(s bots.Situation) {
+	user := auth.GetUser(s.BotLang, s.UserID)
+
+	user.MakeMoney(s, getMakeMoneyDuration(&s))
+}
+
+func getMakeMoneyDuration(s *bots.Situation) int64 {
+	s.Params.Partition = strings.Split(strings.Replace(s.Command, "/make_money_", "", 1), "?")[0]
+
+	breakTime := 0
+	makeMoneyLevel := db.RdbGetMakeMoneyLevel(*s)
+	data := strings.Split(strings.Replace(makeMoneyLevel, "/make_money_", "", 1), "?")
+	if len(data) > 1 {
+		breakTime, _ = strconv.Atoi(data[1])
 	}
-	user.MakeMoney(s, int64(breakTime))
+	return int64(breakTime)
 }
 
 type SpendMoneyCommand struct {
@@ -345,7 +338,7 @@ func NewWithdrawalAmountCommand() *WithdrawalAmountCommand {
 
 func (c *WithdrawalAmountCommand) Serve(s bots.Situation) {
 	user := auth.GetUser(s.BotLang, s.UserID)
-	if user.WithdrawMoneyFromBalance(s.BotLang, s.Message.Text) {
+	if user.WithdrawMoneyFromBalance(s, s.Message.Text) {
 		db.RdbSetUser(s.BotLang, s.UserID, "main")
 
 		sendMainMenu(s)
@@ -419,7 +412,7 @@ func (c *MoreMoneyCommand) Serve(s bots.Situation) {
 
 	msg := tgbotapi.NewMessage(int64(s.UserID), text)
 	msg.ReplyMarkup = msgs2.NewIlMarkUp(
-		msgs2.NewIlRow(msgs2.NewIlURLButton("advertising_button", assets.AdminSettings.AdvertisingURL[s.UserLang])),
+		msgs2.NewIlRow(msgs2.NewIlURLButton("advertising_button", assets.AdminSettings.AdvertisingChan[s.UserLang].Url)),
 		msgs2.NewIlRow(msgs2.NewIlDataButton("get_bonus_button", "/send_bonus_to_user")),
 	).Build(s.UserLang)
 

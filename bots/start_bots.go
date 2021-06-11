@@ -50,7 +50,13 @@ type Parameters struct {
 	ReplyText string
 	Level     string
 	Partition string
-	AdLink    string
+	Link      *LinkInfo
+}
+
+type LinkInfo struct {
+	Url      string
+	FileID   string
+	Duration int
 }
 
 func UploadDataBase(dbLang string) *sql.DB {

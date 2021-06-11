@@ -1,7 +1,9 @@
 package administrator
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
 	"github.com/Stepan1328/youtube-assist-bot/db"
@@ -94,7 +96,7 @@ func (c *SetNewTextUrlCommand) Serve(s bots.Situation) {
 
 	switch capitation {
 	case "change_url":
-		assets.AdminSettings.AdvertisingURL[textLang] = s.Message.Text
+		assets.AdminSettings.AdvertisingChan[textLang].Url = s.Message.Text
 		status = "operation_completed"
 	case "change_text":
 		assets.AdminSettings.AdvertisingText[textLang] = s.Message.Text
@@ -164,17 +166,23 @@ func (c *AddLinkToListCommand) Serve(s bots.Situation) {
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
-	defer updateTasks(s, partition)
 	if partition == "youtube" {
-
 		link := s.Message.Text
 		assets.Tasks[s.BotLang].Partition[partition] = append(assets.Tasks[s.BotLang].Partition[partition], &assets.Link{
 			Url: link,
 		})
+		updateTasks(s, partition)
 		return
 	}
 
 	if s.Message.Video == nil {
+		bytes, err := json.MarshalIndent(s.Message.Video, "", "  ")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		fmt.Println(string(bytes))
+
 		lang := assets.AdminLang(s.UserID)
 		text := assets.AdminText(lang, "incorrect_new_video")
 		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
@@ -182,8 +190,10 @@ func (c *AddLinkToListCommand) Serve(s bots.Situation) {
 	}
 
 	assets.Tasks[s.BotLang].Partition[partition] = append(assets.Tasks[s.BotLang].Partition[partition], &assets.Link{
-		FileID: s.Message.Video.FileID,
+		FileID:   s.Message.Video.FileID,
+		Duration: s.Message.Video.Duration,
 	})
+	updateTasks(s, partition)
 }
 
 func updateTasks(s bots.Situation, partition string) {

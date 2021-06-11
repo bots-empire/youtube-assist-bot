@@ -13,7 +13,6 @@ import (
 var (
 	AvailableAdminLang = []string{"en", "ru"}
 	AvailableLang      = []string{"en" /*, "de", "it", "pt", "es"*/}
-	partitions         = []string{"youtube", "tiktok", "advertisement"}
 
 	Commands     = make(map[string]string)
 	Language     = make([]map[string]string, 5)
@@ -28,6 +27,7 @@ type Task struct {
 type Link struct {
 	Url             string
 	FileID          string
+	Duration        int
 	Limited         bool
 	ImpressionsLeft int
 }
@@ -76,14 +76,19 @@ func ParseTasks() {
 	}
 }
 
-func GetTask(s bots.Situation) (string, error) {
+func GetTask(s bots.Situation) (*bots.LinkInfo, error) {
 	if len(Tasks[s.BotLang].Partition[s.Params.Partition]) == 0 {
-		return "", err.ErrTaskNotFound
+		return nil, err.ErrTaskNotFound
 	}
 
 	num := rand.Intn(len(Tasks[s.BotLang].Partition[s.Params.Partition]))
 	if checkLimitedLink(s, num) {
-		return Tasks[s.BotLang].Partition[s.Params.Partition][num].Url, nil
+		link := Tasks[s.BotLang].Partition[s.Params.Partition][num]
+		return &bots.LinkInfo{
+			Url:      link.Url,
+			FileID:   link.FileID,
+			Duration: link.Duration,
+		}, nil
 	}
 	return GetTask(s)
 }

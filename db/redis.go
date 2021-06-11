@@ -115,3 +115,28 @@ func DeleteTemporaryMessages(botLang string, userID int) {
 		log.Println(err)
 	}
 }
+
+func RdbSetMakeMoneyLevel(s bots.Situation, breakTime string) {
+	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.UserID)
+	_, err := bots.Bots[s.BotLang].Rdb.Set(makeMoneyID, "/make_money_"+s.Params.Partition+"?"+breakTime, 0).Result()
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func makeMoneyLevelKey(partition string, userID int) string {
+	return partition + "_level:" + strconv.Itoa(userID)
+}
+
+func RdbGetMakeMoneyLevel(s bots.Situation) string {
+	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.UserID)
+	result, err := bots.Bots[s.BotLang].Rdb.Get(makeMoneyID).Result()
+	if err != nil && err.Error() != "redis: nil" {
+		log.Println(err)
+	}
+
+	if result == "" {
+		result = "/make_money_" + s.Params.Partition + "?"
+	}
+	return result
+}

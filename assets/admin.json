@@ -10,17 +10,32 @@
     }
   },
   "BonusAmount": 50,
-  "MinWithdrawalAmount": 300,
-  "WatchReward": 5,
-  "SecondBetweenViews": 5,
-  "MaxOfVideoPerDay": 20,
+  "MinWithdrawalAmount": 5,
+  "WatchReward": 300,
+  "SecondBetweenViews": 60,
+  "MaxOfVideoPerDay": 200,
   "ReferralAmount": 15,
-  "AdvertisingURL": {
-    "de": "https://t.me/joinchat/Vm991h1lG-GNnoK6",
-    "en": "https://t.me/joinchat/Vm991h1lG-GNnoK6",
-    "es": "https://t.me/joinchat/Vm991h1lG-GNnoK6",
-    "it": "https://t.me/joinchat/Vm991h1lG-GNnoK6",
-    "pt": "https://t.me/joinchat/Vm991h1lG-GNnoK6"
+  "AdvertisingChan": {
+    "de": {
+      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
+      "ChannelID": -1001204209432
+    },
+    "en": {
+      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
+      "ChannelID": -1001204209432
+    },
+    "es": {
+      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
+      "ChannelID": -1001204209432
+    },
+    "it": {
+      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
+      "ChannelID": -1001204209432
+    },
+    "pt": {
+      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
+      "ChannelID": -1001204209432
+    }
   },
   "BlockedUsers": {
     "en": 0

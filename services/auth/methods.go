@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
@@ -27,16 +28,19 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 		return
 	}
 
-	s.Params.AdLink, s.Err = assets.GetTask(s)
+	s.Params.Link, s.Err = assets.GetTask(s)
 	if s.Err != nil {
 		msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "task_not_found"))
 		msgs2.SendMsgToUser(s.BotLang, msg)
 		return
 	}
 
-	db.RdbSetUser(s.BotLang, u.ID, s.Params.Partition+"?"+strconv.Itoa(int(breakTime)))
 	u.sendMoneyStatistic(s)
-	u.sendInvitationToWatch(s)
+	if s.Params.Partition == "youtube" {
+		u.sendInvitationToWatchLink(s)
+	} else {
+		u.sendInvitationToWatchVideo(s)
+	}
 	u.LastView = time.Now().Unix()
 
 	dataBase := bots.GetDB(s.BotLang)
@@ -73,17 +77,33 @@ func (u *User) sendMoneyStatistic(s bots.Situation) {
 	msgs2.SendMsgToUser(s.BotLang, msg)
 }
 
-func (u *User) sendInvitationToWatch(s bots.Situation) {
+func (u *User) sendInvitationToWatchLink(s bots.Situation) {
 	text := assets.LangText(u.Language, "invitation_to_watch_"+s.Params.Partition)
-	text = fmt.Sprintf(text, s.Params.AdLink)
+	text = fmt.Sprintf(text, s.Params.Link.Url)
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
 	msg.ParseMode = "HTML"
 
+	makeMoneyLevel := db.RdbGetMakeMoneyLevel(s)
 	msg.ReplyMarkup = msgs2.NewIlMarkUp(
-		msgs2.NewIlRow(msgs2.NewIlURLButton("invitation_to_watch_il_button", s.Params.AdLink)),
+		msgs2.NewIlRow(msgs2.NewIlDataButton("next_task_il_button", makeMoneyLevel)),
 	).Build(u.Language)
 
+	db.RdbSetUser(s.BotLang, u.ID, "/make_money_"+s.Params.Partition)
+	db.RdbSetMakeMoneyLevel(s, strconv.Itoa(int(assets.AdminSettings.SecondBetweenViews)))
 	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+func (u *User) sendInvitationToWatchVideo(s bots.Situation) {
+	videoCfg := tgbotapi.NewVideoShare(int64(s.UserID), s.Params.Link.FileID)
+
+	makeMoneyLevel := db.RdbGetMakeMoneyLevel(s)
+	videoCfg.ReplyMarkup = msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlDataButton("next_task_il_button", makeMoneyLevel)),
+	).Build(u.Language)
+
+	db.RdbSetMakeMoneyLevel(s, strconv.Itoa(s.Params.Link.Duration))
+	db.RdbSetUser(s.BotLang, u.ID, "/make_money_"+s.Params.Partition)
+	msgs2.SendMsgToUser(s.BotLang, videoCfg)
 }
 
 func transferMoney(s bots.Situation, breakTime int64) {
@@ -117,35 +137,40 @@ func (u *User) breakTimeNotPassed(botLang string) {
 	msgs2.SendMsgToUser(botLang, msg)
 }
 
-func (u *User) WithdrawMoneyFromBalance(botLang string, amount string) bool {
+func (u *User) WithdrawMoneyFromBalance(s bots.Situation, amount string) bool {
 	amount = strings.Replace(amount, " ", "", -1)
 	amountInt, err := strconv.Atoi(amount)
 	if err != nil {
 		msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "incorrect_amount"))
-		msgs2.SendMsgToUser(botLang, msg)
+		msgs2.SendMsgToUser(s.BotLang, msg)
 		return false
 	}
 
 	if amountInt < assets.AdminSettings.MinWithdrawalAmount {
-		u.minAmountNotReached(botLang)
+		u.minAmountNotReached(s.BotLang)
 		return false
 	}
 
 	if u.Balance < amountInt {
 		msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "lack_of_funds"))
-		msgs2.SendMsgToUser(botLang, msg)
+		msgs2.SendMsgToUser(s.BotLang, msg)
+		return false
+	}
+
+	if !u.CheckSubscribe(s) {
+		sendInvitationToSubs(s, amount)
 		return false
 	}
 
 	u.Balance -= amountInt
-	dataBase := bots.GetDB(botLang)
+	dataBase := bots.GetDB(s.BotLang)
 	_, err = dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", u.Balance, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "successfully_withdrawn"))
-	msgs2.SendMsgToUser(botLang, msg)
+	msgs2.SendMsgToUser(s.BotLang, msg)
 	return true
 }
 
@@ -156,20 +181,105 @@ func (u *User) minAmountNotReached(botLang string) {
 	msgs2.NewParseMessage(botLang, int64(u.ID), text)
 }
 
-func (u User) GetABonus(botLang string) {
+func sendInvitationToSubs(s bots.Situation, amount string) {
+	text := msgs2.GetFormatText(s.UserLang, "withdrawal_not_subs_text")
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), text)
+	msg.ReplyMarkup = msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlURLButton("advertising_button", assets.AdminSettings.AdvertisingChan[s.UserLang].Url)),
+		msgs2.NewIlRow(msgs2.NewIlDataButton("im_subscribe_button", "/withdrawal_money?"+amount)),
+	).Build(s.UserLang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+func (u *User) GetABonus(s bots.Situation) {
+	if !u.CheckSubscribe(s) {
+		text := assets.LangText(u.Language, "user_dont_subscribe_the_channel")
+		msgs2.SendSimpleMsg(s.BotLang, int64(u.ID), text)
+		return
+	}
+
 	if u.TakeBonus {
 		text := assets.LangText(u.Language, "bonus_already_have")
-		msgs2.SendSimpleMsg(botLang, int64(u.ID), text)
+		msgs2.SendSimpleMsg(s.BotLang, int64(u.ID), text)
 		return
 	}
 
 	u.Balance += assets.AdminSettings.BonusAmount
-	dataBase := bots.GetDB(botLang)
+	dataBase := bots.GetDB(s.BotLang)
 	_, err := dataBase.Query("UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;", u.Balance, true, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	text := assets.LangText(u.Language, "bonus_have_received")
-	msgs2.SendSimpleMsg(botLang, int64(u.ID), text)
+	msgs2.SendSimpleMsg(s.BotLang, int64(u.ID), text)
+}
+
+func (u *User) CheckSubscribe(s bots.Situation) bool {
+	member, err := bots.Bots[s.BotLang].Bot.GetChatMember(tgbotapi.ChatConfigWithUser{
+		ChatID: assets.AdminSettings.AdvertisingChan[s.BotLang].ChannelID,
+		UserID: s.UserID,
+	})
+
+	if err == nil {
+		addMemberToSubsBase(s)
+		return checkMemberStatus(member)
+	}
+	return false
+}
+
+func checkMemberStatus(member tgbotapi.ChatMember) bool {
+	if member.IsAdministrator() {
+		return true
+	}
+	if member.IsCreator() {
+		return true
+	}
+	if member.IsMember() {
+		return true
+	}
+	return false
+}
+
+func addMemberToSubsBase(s bots.Situation) {
+	dataBase := bots.GetDB(s.BotLang)
+	rows, err := dataBase.Query("SELECT * FROM subs WHERE id = ?;", s.UserID)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	user := readUser(rows)
+	if user.ID != 0 {
+		return
+	}
+	_, err = dataBase.Query("INSERT INTO subs VALUES(?);", s.UserID)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func readUser(rows *sql.Rows) User {
+	defer rows.Close()
+
+	var users []User
+
+	for rows.Next() {
+		var id int
+
+		if err := rows.Scan(&id); err != nil {
+			panic("Failed to scan row: " + err.Error())
+		}
+
+		users = append(users, User{
+			ID: id,
+		})
+	}
+	if len(users) == 0 {
+		users = append(users, User{
+			ID: 0,
+		})
+	}
+	return users[0]
 }

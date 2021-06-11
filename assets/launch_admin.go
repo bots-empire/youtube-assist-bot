@@ -14,7 +14,7 @@ type Admin struct {
 	SecondBetweenViews  int64
 	MaxOfVideoPerDay    int
 	ReferralAmount      int
-	AdvertisingURL      map[string]string
+	AdvertisingChan     map[string]*AdvertChannel
 	BlockedUsers        map[string]int
 	LangSelectedMap     map[string]bool
 	AdvertisingText     map[string]string
@@ -23,6 +23,11 @@ type Admin struct {
 type AdminUser struct {
 	Language  string
 	FirstName string
+}
+
+type AdvertChannel struct {
+	Url       string
+	ChannelID int64
 }
 
 var AdminSettings *Admin
