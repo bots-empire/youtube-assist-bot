@@ -23,6 +23,9 @@ func (h *AdminMessagesHandlers) GetHandler(command string) bots.Handler {
 }
 
 func (h *AdminMessagesHandlers) Init() {
+	//Delete Admin command
+	h.OnCommand("/delete_admin", NewRemoveAdminCommand())
+
 	//Change Advertisement parameters command
 	h.OnCommand("/advertisement_setting", NewAdvertisementSettingCommand())
 	h.OnCommand("/change_text_url", NewSetNewTextUrlCommand())
@@ -41,6 +44,43 @@ func (h *AdminMessagesHandlers) OnCommand(command string, handler bots.Handler) 
 	h.Handlers[command] = handler
 }
 
+type RemoveAdminCommand struct {
+}
+
+func NewRemoveAdminCommand() *RemoveAdminCommand {
+	return &RemoveAdminCommand{}
+}
+
+func (c *RemoveAdminCommand) Serve(s bots.Situation) {
+	lang := assets.AdminLang(s.UserID)
+	adminId, err := strconv.Atoi(s.Message.Text)
+	if err != nil {
+		text := assets.AdminText(lang, "incorrect_admin_id_text")
+		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		return
+	}
+
+	if !checkAdminIDInTheList(adminId) {
+		text := assets.AdminText(lang, "incorrect_admin_id_text")
+		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		return
+	}
+
+	delete(assets.AdminSettings.AdminID, adminId)
+	assets.SaveAdminSettings()
+	setAdminBackButton(s.BotLang, s.UserID, "admin_removed_status")
+	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+
+	s.Command = "admin/send_admin_list"
+	s.CallbackQuery = &tgbotapi.CallbackQuery{Data: "admin/send_admin_list"}
+	CheckAdminCallback(s)
+}
+
+func checkAdminIDInTheList(adminID int) bool {
+	_, inMap := assets.AdminSettings.AdminID[adminID]
+	return inMap
+}
+
 type AdvertisementSettingCommand struct {
 }
 
@@ -57,6 +97,11 @@ func (c *AdvertisementSettingCommand) Serve(s bots.Situation) {
 }
 
 func CheckAdminMessage(s bots.Situation) bool {
+	if !containsInAdmin(s.UserID) {
+		notAdmin(s.BotLang, s.UserID)
+		return true
+	}
+
 	s.Command, s.Err = assets.GetCommandFromText(s)
 	if s.Err == nil {
 		Handler := bots.Bots[s.BotLang].AdminMessageHandler.

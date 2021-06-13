@@ -1,5 +1,6 @@
 {
   "admin_log_in": "You have successfully logged in to the admin panel!",
+  "welcome_to_admin": "Congratulations, the admin panel is now available to you\nWrite /admin to log in to the admin panel",
   "admin_log_out_text": "\uD83D\uDEB6\u200D♂ Log out of admin",
   "admin_log_out": "You are logged out of the admin panel",
   "make_a_choice": "Make a choice",

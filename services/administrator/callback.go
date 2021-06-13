@@ -22,11 +22,13 @@ func (h *AdminCallbackHandlers) GetHandler(command string) bots.Handler {
 
 func (h *AdminCallbackHandlers) Init() {
 	//Admin Setting command
-	h.OnCommand("/admin_setting", NewAdminSettingCommand())
 	h.OnCommand("/send_menu", NewAdminMenuCommand())
+	h.OnCommand("/admin_setting", NewAdminSettingCommand())
 	h.OnCommand("/change_language", NewChangeLangCommand())
 	h.OnCommand("/set_language", NewSetNewLangCommand())
 	h.OnCommand("/send_admin_list", NewAdminListCommand())
+	h.OnCommand("/add_admin_msg", NewNewAdminToListCommand())
+	h.OnCommand("/delete_admin", NewDeleteAdminCommand())
 
 	//Make Money Setting command
 	h.OnCommand("/make_money_setting", NewMakeMoneySettingCommand())
@@ -58,6 +60,11 @@ func (h *AdminCallbackHandlers) OnCommand(command string, handler bots.Handler) 
 }
 
 func CheckAdminCallback(s bots.Situation) {
+	if !containsInAdmin(s.UserID) {
+		notAdmin(s.BotLang, s.UserID)
+		return
+	}
+
 	s.Command = strings.TrimLeft(s.Command, "admin")
 
 	Handler := bots.Bots[s.BotLang].AdminCallBackHandler.
@@ -68,24 +75,23 @@ func CheckAdminCallback(s bots.Situation) {
 	}
 }
 
-type AdminCommand struct {
+type AdminLoginCommand struct {
 }
 
-func NewAdminCommand() *AdminCommand {
-	return &AdminCommand{}
+func NewAdminCommand() *AdminLoginCommand {
+	return &AdminLoginCommand{}
 }
 
-func (c *AdminCommand) Serve(s bots.Situation) {
-	userID := s.Message.From.ID
-	if !containsInAdmin(userID) {
-		notAdmin(s.BotLang, userID)
+func (c *AdminLoginCommand) Serve(s bots.Situation) {
+	if !containsInAdmin(s.UserID) {
+		notAdmin(s.BotLang, s.UserID)
 		return
 	}
 
 	updateFirstNameInfo(s.Message)
-	db.DeleteOldAdminMsg(s.BotLang, userID)
+	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
 
-	setAdminBackButton(s.BotLang, userID, "admin_log_in")
+	setAdminBackButton(s.BotLang, s.UserID, "admin_log_in")
 	s.Command = "/send_menu"
 	CheckAdminCallback(s)
 }
@@ -157,6 +163,12 @@ func NewAdminSettingCommand() *AdminSettingCommand {
 }
 
 func (c *AdminSettingCommand) Serve(s bots.Situation) {
+	if strings.Contains(s.Params.Level, "delete_admin") {
+		setAdminBackButton(s.BotLang, s.UserID, "operation_canceled")
+		db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	}
+
+	db.RdbSetUser(s.BotLang, s.CallbackQuery.From.ID, "admin/mailing")
 	lang := assets.AdminLang(s.UserID)
 	text := assets.AdminText(lang, "admin_setting_text")
 
@@ -166,7 +178,7 @@ func (c *AdminSettingCommand) Serve(s bots.Situation) {
 		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_main_menu", "admin/send_menu")),
 	).Build(lang)
 
-	msgs2.NewEditMarkUpMessage(s.BotLang, s.UserID, db.RdbGetAdminMsgID(s.BotLang, s.UserID), &markUp, text)
+	sendMsgAdnAnswerCallback(s, &markUp, text)
 	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
 }
 
@@ -206,17 +218,6 @@ func (c *SetNewLangCommand) Serve(s bots.Situation) {
 	setAdminBackButton(s.BotLang, s.UserID, "language_set")
 	s.Command = "admin/admin_setting"
 	CheckAdminCallback(s)
-}
-
-type AdminListCommand struct {
-}
-
-func NewAdminListCommand() *AdminListCommand {
-	return &AdminListCommand{}
-}
-
-func (c *AdminListCommand) Serve(s bots.Situation) {
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "add_in_future")
 }
 
 type AdvertisementMenuCommand struct {
@@ -385,7 +386,6 @@ func NewStatisticCommand() *StatisticCommand {
 func (c *StatisticCommand) Serve(s bots.Situation) {
 	lang := assets.AdminLang(s.UserID)
 
-	assets.UploadAdminSettings()
 	count := countUsers(s.BotLang)
 	allCount := countAllUsers()
 	blocked := countBlockedUsers()

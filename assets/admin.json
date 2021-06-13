@@ -2,11 +2,13 @@
   "AdminID": {
     "138814168": {
       "Language": "ru",
-      "FirstName": "Arb"
+      "FirstName": "Arb",
+      "SpecialPossibility": true
     },
     "1418862576": {
       "Language": "ru",
-      "FirstName": "Тимофей"
+      "FirstName": "Тимофей",
+      "SpecialPossibility": true
     }
   },
   "BonusAmount": 50,

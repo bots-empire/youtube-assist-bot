@@ -155,6 +155,12 @@ func NewStartCommand() *StartCommand {
 }
 
 func (c *StartCommand) Serve(s bots.Situation) {
+	if strings.Contains(s.Message.Text, "new_admin") {
+		s.Command = s.Message.Text
+		administrator.CheckNewAdmin(s)
+		return
+	}
+
 	text := assets.LangText(s.UserLang, "main_select_menu")
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 

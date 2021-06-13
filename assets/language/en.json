@@ -71,6 +71,7 @@
   "select_language": "Please select a language:",
   "make_a_choice": "Make a choice",
   "language_successful_set": "Language installed successfully",
-  "not_admin": "Sorry, but you are not the administrator",
-  "advertisement_button_text": "✅ MAKE MONEY ✅"
+  "not_admin": "Sorry, but you are not the administrator\nWrite /start to start interactions",
+  "advertisement_button_text": "✅ MAKE MONEY ✅",
+  "invalid_link_err": "Error, link is invalid"
 }

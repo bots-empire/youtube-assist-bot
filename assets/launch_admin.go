@@ -21,8 +21,9 @@ type Admin struct {
 }
 
 type AdminUser struct {
-	Language  string
-	FirstName string
+	Language           string
+	FirstName          string
+	SpecialPossibility bool
 }
 
 type AdvertChannel struct {
