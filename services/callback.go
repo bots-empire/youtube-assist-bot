@@ -156,7 +156,14 @@ func (c *RecheckSubscribeCommand) Serve(s bots.Situation) {
 		Text: amount,
 	}
 	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "invitation_to_subscribe")
-	checkMessage(s)
+	u := auth.GetUser(s.BotLang, s.UserID)
+	amountInt, _ := strconv.Atoi(amount)
+
+	if u.CheckSubscribeToWithdrawal(s, amountInt) {
+		db.RdbSetUser(s.BotLang, s.UserID, "main")
+
+		sendMainMenu(s)
+	}
 }
 
 type PromotionCaseCommand struct {

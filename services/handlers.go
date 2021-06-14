@@ -344,11 +344,7 @@ func NewWithdrawalAmountCommand() *WithdrawalAmountCommand {
 
 func (c *WithdrawalAmountCommand) Serve(s bots.Situation) {
 	user := auth.GetUser(s.BotLang, s.UserID)
-	if user.WithdrawMoneyFromBalance(s, s.Message.Text) {
-		db.RdbSetUser(s.BotLang, s.UserID, "main")
-
-		sendMainMenu(s)
-	}
+	user.WithdrawMoneyFromBalance(s, s.Message.Text)
 }
 
 type SendProfileCommand struct {

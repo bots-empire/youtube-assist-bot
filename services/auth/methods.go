@@ -137,41 +137,27 @@ func (u *User) breakTimeNotPassed(botLang string) {
 	msgs2.SendMsgToUser(botLang, msg)
 }
 
-func (u *User) WithdrawMoneyFromBalance(s bots.Situation, amount string) bool {
+func (u *User) WithdrawMoneyFromBalance(s bots.Situation, amount string) {
 	amount = strings.Replace(amount, " ", "", -1)
 	amountInt, err := strconv.Atoi(amount)
 	if err != nil {
 		msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "incorrect_amount"))
 		msgs2.SendMsgToUser(s.BotLang, msg)
-		return false
+		return
 	}
 
 	if amountInt < assets.AdminSettings.MinWithdrawalAmount {
 		u.minAmountNotReached(s.BotLang)
-		return false
+		return
 	}
 
 	if u.Balance < amountInt {
 		msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "lack_of_funds"))
 		msgs2.SendMsgToUser(s.BotLang, msg)
-		return false
+		return
 	}
 
-	if !u.CheckSubscribe(s) {
-		sendInvitationToSubs(s, amount)
-		return false
-	}
-
-	u.Balance -= amountInt
-	dataBase := bots.GetDB(s.BotLang)
-	_, err = dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", u.Balance, u.ID)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "successfully_withdrawn"))
-	msgs2.SendMsgToUser(s.BotLang, msg)
-	return true
+	sendInvitationToSubs(s, amount)
 }
 
 func (u *User) minAmountNotReached(botLang string) {
@@ -191,6 +177,28 @@ func sendInvitationToSubs(s bots.Situation, amount string) {
 	).Build(s.UserLang)
 
 	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+func (u *User) CheckSubscribeToWithdrawal(s bots.Situation, amount int) bool {
+	if u.Balance < amount {
+		return false
+	}
+
+	if !u.CheckSubscribe(s) {
+		sendInvitationToSubs(s, strconv.Itoa(amount))
+		return false
+	}
+
+	u.Balance -= amount
+	dataBase := bots.GetDB(s.BotLang)
+	_, err := dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", u.Balance, u.ID)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "successfully_withdrawn"))
+	msgs2.SendMsgToUser(s.BotLang, msg)
+	return true
 }
 
 func (u *User) GetABonus(s bots.Situation) {
