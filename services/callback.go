@@ -32,8 +32,8 @@ func (h *CallBackHandlers) Init() {
 	h.OnCommand("/promotion_case", NewPromotionCaseCommand())
 
 	//Change language command
-	h.OnCommand("/send_change_lang", NewSendLanguageCommand())
-	h.OnCommand("/change_lang", NewChangeLanguageCommand())
+	//h.OnCommand("/send_change_lang", NewSendLanguageCommand())
+	//h.OnCommand("/change_lang", NewChangeLanguageCommand())
 
 	log.Println("CallBack Handlers Initialized")
 }

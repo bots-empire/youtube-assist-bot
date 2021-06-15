@@ -361,11 +361,13 @@ func (c *SendProfileCommand) Serve(s bots.Situation) {
 	text := msgs2.GetFormatText(user.Language, "profile_text",
 		s.Message.From.FirstName, user.Balance, user.Completed, user.ReferralCount)
 
-	markUp := msgs2.NewIlMarkUp(
-		msgs2.NewIlRow(msgs2.NewIlDataButton("change_lang_button", "/send_change_lang")),
-	).Build(user.Language)
+	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
 
-	msgs2.NewParseMarkUpMessage(s.BotLang, int64(user.ID), markUp, text)
+	//markUp := msgs2.NewIlMarkUp(
+	//	msgs2.NewIlRow(msgs2.NewIlDataButton("change_lang_button", "/send_change_lang")),
+	//).Build(user.Language)
+	//
+	//msgs2.NewParseMarkUpMessage(s.BotLang, int64(user.ID), markUp, text)
 }
 
 type SendStatisticsCommand struct {
