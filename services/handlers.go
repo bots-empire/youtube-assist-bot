@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
@@ -73,15 +74,29 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 
 	if update.Message != nil {
 		auth.CheckingTheUser(botLang, update.Message)
+		situation := createSituationFromMsg(botLang, update.Message)
 
-		checkMessage(createSituationFromMsg(botLang, update.Message))
+		PrintNewSituation(situation)
+		checkMessage(situation)
 		return
 	}
 
 	if update.CallbackQuery != nil {
-		checkCallbackQuery(createSituationFromCallback(botLang, update.CallbackQuery))
+		situation := createSituationFromCallback(botLang, update.CallbackQuery)
+
+		PrintNewSituation(situation)
+		checkCallbackQuery(situation)
 		return
 	}
+}
+
+func PrintNewSituation(situation bots.Situation) {
+	bytes, err := json.MarshalIndent(situation, "", "   ")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println("New update:\n", string(bytes), "\n")
 }
 
 func createSituationFromMsg(botLang string, message *tgbotapi.Message) bots.Situation {
