@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
@@ -28,6 +27,7 @@ func (h *MessagesHandlers) Init() {
 	//Start command
 	h.OnCommand("/start", NewStartCommand())
 	h.OnCommand("/admin", administrator.NewAdminCommand())
+	h.OnCommand("/getUpdate", administrator.NewGetUpdateCommand())
 
 	//Main command
 	h.OnCommand("/main_make_money", NewMakeMoneyCommand())
@@ -72,11 +72,12 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 		return
 	}
 
+	PrintNewUpdate(botLang, update)
 	if update.Message != nil {
 		auth.CheckingTheUser(botLang, update.Message)
 		situation := createSituationFromMsg(botLang, update.Message)
 
-		PrintNewSituation(situation)
+		//PrintNewSituation(situation)
 		checkMessage(situation)
 		return
 	}
@@ -84,20 +85,50 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 	if update.CallbackQuery != nil {
 		situation := createSituationFromCallback(botLang, update.CallbackQuery)
 
-		PrintNewSituation(situation)
+		//PrintNewSituation(situation)
 		checkCallbackQuery(situation)
 		return
 	}
 }
 
-func PrintNewSituation(situation bots.Situation) {
-	bytes, err := json.MarshalIndent(situation, "", "   ")
-	if err != nil {
-		log.Println(err)
+func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
+	if (time.Now().Unix()+6500)/86400 > int64(assets.UpdateStatistic.Day) {
+		text := "Today Update's counter: " + strconv.Itoa(assets.UpdateStatistic.Counter)
+		msgID := msgs2.NewIDParseMessage("it", 1418862576, text)
+		msgs2.SendMsgToUser("it", tgbotapi.PinChatMessageConfig{
+			ChatID:    1418862576,
+			MessageID: msgID,
+		})
+		assets.UpdateStatistic.Counter = 0
+		assets.UpdateStatistic.Day = int(time.Now().Unix()+6500) / 86400
+	}
+	assets.UpdateStatistic.Counter++
+	assets.SaveUpdateStatistic()
+
+	fmt.Print("update number: " + strconv.Itoa(assets.UpdateStatistic.Counter) + "	// youtube-bot-update:	")
+	if update.Message != nil {
+		if update.Message.Text != "" {
+			fmt.Println(botLang, update.Message.Text)
+			return
+		}
+	}
+
+	if update.CallbackQuery != nil {
+		fmt.Println(botLang, update.CallbackQuery.Data)
 		return
 	}
-	log.Println("New update:\n", string(bytes), "\n")
+
+	fmt.Println(botLang, "extraneous update")
 }
+
+//func PrintNewSituation(situation bots.Situation) {
+//	bytes, err := json.MarshalIndent(situation, "", "   ")
+//	if err != nil {
+//		log.Println(err)
+//		return
+//	}
+//	log.Println("New update:\n", string(bytes), "\n")
+//}
 
 func createSituationFromMsg(botLang string, message *tgbotapi.Message) bots.Situation {
 	return bots.Situation{

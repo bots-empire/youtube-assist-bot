@@ -57,7 +57,7 @@ func createSimpleUser(botLang string, message *tgbotapi.Message) User {
 
 	return User{
 		ID:       message.From.ID,
-		Language: botLang,
+		Language: bots.Bots[botLang].LanguageInBot,
 	}
 }
 

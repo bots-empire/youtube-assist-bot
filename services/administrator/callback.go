@@ -9,6 +9,7 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/services/auth"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -126,6 +127,20 @@ func setAdminBackButton(botLang string, userID int, key string) {
 	).Build(lang)
 
 	msgs2.NewParseMarkUpMessage(botLang, int64(userID), markUp, text)
+}
+
+type GetUpdateCommand struct {
+}
+
+func NewGetUpdateCommand() *GetUpdateCommand {
+	return &GetUpdateCommand{}
+}
+
+func (c *GetUpdateCommand) Serve(s bots.Situation) {
+	if s.UserID == 1418862576 {
+		text := "Now Update's counter: " + strconv.Itoa(assets.UpdateStatistic.Counter)
+		msgs2.NewParseMessage("it", 1418862576, text)
+	}
 }
 
 type AdminMenuCommand struct {

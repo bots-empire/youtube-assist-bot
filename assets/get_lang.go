@@ -12,7 +12,7 @@ import (
 
 var (
 	AvailableAdminLang = []string{"en", "ru"}
-	AvailableLang      = []string{"en" /*, "de", "it", "pt", "es"*/}
+	AvailableLang      = []string{"en", "it", "pt", "es" /*, "de"*/}
 
 	Commands     = make(map[string]string)
 	Language     = make([]map[string]string, 5)
