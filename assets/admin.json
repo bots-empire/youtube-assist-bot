@@ -18,32 +18,29 @@
   "MaxOfVideoPerDay": 200,
   "ReferralAmount": 15,
   "AdvertisingChan": {
-    "de": {
-      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
-      "ChannelID": -1001204209432
-    },
     "en": {
       "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
       "ChannelID": -1001204209432
     },
     "es": {
-      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
-      "ChannelID": -1001204209432
+      "Url": "https://t.me/joinchat/dBNeh46s1tM5OTVi",
+      "ChannelID": -1001311643544
     },
     "it": {
-      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
-      "ChannelID": -1001204209432
+      "Url": "https://t.me/joinchat/m7vVOB3_Kvg1OGY6",
+      "ChannelID": -1001195508011
     },
     "pt": {
-      "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
-      "ChannelID": -1001204209432
+      "Url": "https://t.me/joinchat/90Vy3Ick6boyMzJi",
+      "ChannelID": -1001371502046
     }
   },
   "BlockedUsers": {
-    "en": 0
+    "es": 0,
+    "it": 0,
+    "pt": 0
   },
   "LangSelectedMap": {
-    "admin/send_advertisement": true,
     "de": true,
     "en": true,
     "es": true,

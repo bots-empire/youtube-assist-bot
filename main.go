@@ -41,6 +41,7 @@ func startServices() {
 	assets.ParseTasks()
 	assets.ParseAdminMap()
 	assets.UploadAdminSettings()
+	assets.UploadUpdateStatistic()
 	assets.ParseCommandsList()
 
 	log.Println("All services are running successfully")

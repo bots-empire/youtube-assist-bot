@@ -23,8 +23,9 @@ type GlobalBot struct {
 	AdminMessageHandler  GlobalHandlers
 	AdminCallBackHandler GlobalHandlers
 
-	BotToken string
-	BotLink  string
+	BotToken      string
+	BotLink       string
+	LanguageInBot string
 }
 
 type GlobalHandlers interface {
