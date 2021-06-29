@@ -176,17 +176,17 @@ func (c *UpdateParameterCommand) Serve(s bots.Situation) {
 
 	switch partition {
 	case "bonus_amount":
-		assets.AdminSettings.BonusAmount = newAmount
+		assets.AdminSettings.Parameters[s.BotLang].BonusAmount = newAmount
 	case "min_withdrawal_amount":
-		assets.AdminSettings.MinWithdrawalAmount = newAmount
+		assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount = newAmount
 	case "watch_amount":
-		assets.AdminSettings.WatchReward = newAmount
+		assets.AdminSettings.Parameters[s.BotLang].WatchReward = newAmount
 	case "break_amount":
-		assets.AdminSettings.SecondBetweenViews = int64(newAmount)
+		assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews = int64(newAmount)
 	case "watch_pd_amount":
-		assets.AdminSettings.MaxOfVideoPerDay = newAmount
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay = newAmount
 	case "referral_amount":
-		assets.AdminSettings.ReferralAmount = newAmount
+		assets.AdminSettings.Parameters[s.BotLang].ReferralAmount = newAmount
 	}
 	assets.SaveAdminSettings()
 	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")

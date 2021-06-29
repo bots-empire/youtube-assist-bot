@@ -18,7 +18,7 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 		u.resetWatchDayCounter(s.BotLang)
 	}
 
-	if u.CompletedToday >= assets.AdminSettings.MaxOfVideoPerDay {
+	if u.CompletedToday >= assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay {
 		u.reachedMaxAmountPerDay(s.BotLang)
 		return
 	}
@@ -65,8 +65,8 @@ func (u *User) resetWatchDayCounter(botLang string) {
 
 func (u *User) sendMoneyStatistic(s bots.Situation) {
 	text := assets.LangText(u.Language, "make_money_statistic")
-	text = fmt.Sprintf(text, u.CompletedToday, assets.AdminSettings.MaxOfVideoPerDay,
-		u.Balance, assets.AdminSettings.WatchReward)
+	text = fmt.Sprintf(text, u.CompletedToday, assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay,
+		u.Balance, assets.AdminSettings.Parameters[s.BotLang].WatchReward)
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
 	msg.ParseMode = "HTML"
 
@@ -89,7 +89,7 @@ func (u *User) sendInvitationToWatchLink(s bots.Situation) {
 	).Build(u.Language)
 
 	db.RdbSetUser(s.BotLang, u.ID, "/make_money_"+s.Params.Partition)
-	db.RdbSetMakeMoneyLevel(s, strconv.Itoa(int(assets.AdminSettings.SecondBetweenViews)))
+	db.RdbSetMakeMoneyLevel(s, strconv.Itoa(int(assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)))
 	msgs2.SendMsgToUser(s.BotLang, msg)
 }
 
@@ -110,7 +110,7 @@ func transferMoney(s bots.Situation, breakTime int64) {
 	time.Sleep(time.Second * time.Duration(breakTime))
 
 	u := GetUser(s.BotLang, s.UserID)
-	u.Balance += assets.AdminSettings.WatchReward
+	u.Balance += assets.AdminSettings.Parameters[s.BotLang].WatchReward
 	u.Completed++
 	u.CompletedToday++
 
@@ -124,7 +124,7 @@ func transferMoney(s bots.Situation, breakTime int64) {
 
 func (u *User) reachedMaxAmountPerDay(botLang string) {
 	text := assets.LangText(u.Language, "reached_max_amount_per_day")
-	text = fmt.Sprintf(text, assets.AdminSettings.MaxOfVideoPerDay, assets.AdminSettings.MaxOfVideoPerDay)
+	text = fmt.Sprintf(text, assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDay, assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDay)
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
 
 	msgs2.SendMsgToUser(botLang, msg)
@@ -146,7 +146,7 @@ func (u *User) WithdrawMoneyFromBalance(s bots.Situation, amount string) {
 		return
 	}
 
-	if amountInt < assets.AdminSettings.MinWithdrawalAmount {
+	if amountInt < assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount {
 		u.minAmountNotReached(s.BotLang)
 		return
 	}
@@ -162,7 +162,7 @@ func (u *User) WithdrawMoneyFromBalance(s bots.Situation, amount string) {
 
 func (u *User) minAmountNotReached(botLang string) {
 	text := assets.LangText(u.Language, "minimum_amount_not_reached")
-	text = fmt.Sprintf(text, assets.AdminSettings.MinWithdrawalAmount)
+	text = fmt.Sprintf(text, assets.AdminSettings.Parameters[botLang].MinWithdrawalAmount)
 
 	msgs2.NewParseMessage(botLang, int64(u.ID), text)
 }
@@ -214,7 +214,7 @@ func (u *User) GetABonus(s bots.Situation) {
 		return
 	}
 
-	u.Balance += assets.AdminSettings.BonusAmount
+	u.Balance += assets.AdminSettings.Parameters[s.BotLang].BonusAmount
 	dataBase := bots.GetDB(s.BotLang)
 	_, err := dataBase.Query("UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;", u.Balance, true, u.ID)
 	if err != nil {

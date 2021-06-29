@@ -11,12 +11,36 @@
       "SpecialPossibility": true
     }
   },
-  "BonusAmount": 50,
-  "MinWithdrawalAmount": 5,
-  "WatchReward": 300,
-  "SecondBetweenViews": 60,
-  "MaxOfVideoPerDay": 200,
-  "ReferralAmount": 15,
+  "Parameters": {
+    "en": {
+      "BonusAmount": 50,
+      "MinWithdrawalAmount": 300,
+      "VoiceAmount": 5,
+      "MaxOfVoicePerDay": 20,
+      "ReferralAmount": 15
+    },
+    "es": {
+      "BonusAmount": 50,
+      "MinWithdrawalAmount": 400,
+      "VoiceAmount": 5,
+      "MaxOfVoicePerDay": 20,
+      "ReferralAmount": 15
+    },
+    "it": {
+      "BonusAmount": 50,
+      "MinWithdrawalAmount": 600,
+      "VoiceAmount": 5,
+      "MaxOfVoicePerDay": 20,
+      "ReferralAmount": 15
+    },
+    "pt": {
+      "BonusAmount": 100,
+      "MinWithdrawalAmount": 800,
+      "VoiceAmount": 10,
+      "MaxOfVoicePerDay": 20,
+      "ReferralAmount": 30
+    }
+  },
   "AdvertisingChan": {
     "en": {
       "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",

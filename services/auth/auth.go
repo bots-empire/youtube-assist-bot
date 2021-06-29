@@ -73,7 +73,7 @@ func (u *User) AddNewUser(botLang string, referralID int) {
 	}
 
 	baseUser := GetUser(botLang, referralID)
-	baseUser.Balance += assets.AdminSettings.ReferralAmount
+	baseUser.Balance += assets.AdminSettings.Parameters[botLang].ReferralAmount
 	_, err = dataBase.Query("UPDATE users SET balance = ?, referral_count = ? WHERE id = ?;",
 		baseUser.Balance, baseUser.ReferralCount+1, baseUser.ID)
 	if err != nil {

@@ -257,7 +257,7 @@ func (c *LinkTaskCommand) Serve(s bots.Situation) {
 	user := auth.GetUser(s.BotLang, s.UserID)
 
 	s.Params.Partition = strings.Split(strings.Replace(s.Command, "/make_money_", "", 1), "?")[0]
-	user.MakeMoney(s, assets.AdminSettings.SecondBetweenViews)
+	user.MakeMoney(s, assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)
 }
 
 type VideoTaskCommand struct {
@@ -443,7 +443,7 @@ func (c *MoneyForAFriendCommand) Serve(s bots.Situation) {
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 
 	text := msgs2.GetFormatText(user.Language, "referral_text", bots.GetGlobalBot(s.BotLang).BotLink,
-		user.ID, assets.AdminSettings.ReferralAmount, user.ReferralCount)
+		user.ID, assets.AdminSettings.Parameters[s.BotLang].ReferralAmount, user.ReferralCount)
 
 	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
 }
@@ -458,7 +458,7 @@ func NewMoreMoneyCommand() *MoreMoneyCommand {
 func (c *MoreMoneyCommand) Serve(s bots.Situation) {
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 	text := msgs2.GetFormatText(s.UserLang, "more_money_text",
-		assets.AdminSettings.BonusAmount)
+		assets.AdminSettings.Parameters[s.BotLang].BonusAmount)
 
 	msg := tgbotapi.NewMessage(int64(s.UserID), text)
 	msg.ReplyMarkup = msgs2.NewIlMarkUp(

@@ -104,22 +104,22 @@ func (c *ChangeParameterCommand) Serve(s bots.Situation) {
 	switch changeParameter {
 	case "bonus_amount":
 		parameter = assets.AdminText(lang, "change_bonus_amount_button")
-		value = assets.AdminSettings.BonusAmount
+		value = assets.AdminSettings.Parameters[s.BotLang].BonusAmount
 	case "min_withdrawal_amount":
 		parameter = assets.AdminText(lang, "change_min_withdrawal_amount_button")
-		value = assets.AdminSettings.MinWithdrawalAmount
+		value = assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount
 	case "watch_amount":
 		parameter = assets.AdminText(lang, "change_watch_amount_button")
-		value = assets.AdminSettings.WatchReward
+		value = assets.AdminSettings.Parameters[s.BotLang].WatchReward
 	case "break_amount":
 		parameter = assets.AdminText(lang, "change_break_watch_button")
-		value = int(assets.AdminSettings.SecondBetweenViews)
+		value = int(assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)
 	case "watch_pd_amount":
 		parameter = assets.AdminText(lang, "change_watch_pd_amount_button")
-		value = assets.AdminSettings.MaxOfVideoPerDay
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay
 	case "referral_amount":
 		parameter = assets.AdminText(lang, "change_referral_amount_button")
-		value = assets.AdminSettings.ReferralAmount
+		value = assets.AdminSettings.Parameters[s.BotLang].ReferralAmount
 	}
 
 	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
