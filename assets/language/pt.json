@@ -17,7 +17,7 @@
   "next_task_il_button": "Próxima tarefa \uD83D\uDC40",
   "make_money_statistic": "<b>Completed</b> ☑️: %d Of %d \n\n <b> Your balance </b> \uD83D\uDCB5: %d $ \n\nWatch this video for at least a minute to earn %d$",
   "invitation_to_watch_youtube": "Watch YouTube Ad: %s",
-  "reached_max_amount_per_day": " ✅ Você já enviou %d/%d mensagens de voz!volte daqui a 24 horas para continuar a ganhar dinheiro...",
+  "reached_max_amount_per_day": " ✅ Você já assistiu aos vídeos %d/%d disponíveis hoje!\nVolte daqui a 24 horas para continuar a ganhar dinheiro...",
   "break_time_not_passed": "ainda não viu o vídeo anterior\uD83D\uDC46",
   "watch_previous_video": "Watch the entire video",
   "task_not_found": "infelizmente não havia nenhuma tarefa para você\nPlease tentar novamente mais tarde",
