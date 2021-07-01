@@ -403,8 +403,8 @@ func (c *StatisticCommand) Serve(s bots.Situation) {
 
 	count := countUsers(s.BotLang)
 	allCount := countAllUsers()
-	blocked := countBlockedUsers()
-	subscribers := countSubscribers()
+	blocked := countBlockedUsers(s.BotLang)
+	subscribers := countSubscribers(s.BotLang)
 	text := adminFormatText(lang, "statistic_text",
 		allCount, count, blocked, subscribers, count-blocked)
 

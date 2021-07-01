@@ -44,10 +44,11 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 	u.LastView = time.Now().Unix()
 
 	dataBase := bots.GetDB(s.BotLang)
-	_, err := dataBase.Query("UPDATE users SET last_voice = ? WHERE id = ?;", u.LastView, u.ID)
+	rows, err := dataBase.Query("UPDATE users SET last_voice = ? WHERE id = ?;", u.LastView, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	go transferMoney(s, breakTime)
 }
@@ -56,11 +57,12 @@ func (u *User) resetWatchDayCounter(botLang string) {
 	u.CompletedToday = 0
 
 	dataBase := bots.GetDB(botLang)
-	_, err := dataBase.Query("UPDATE users SET completed_today = ? WHERE id = ?;",
+	rows, err := dataBase.Query("UPDATE users SET completed_today = ? WHERE id = ?;",
 		u.CompletedToday, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 }
 
 func (u *User) sendMoneyStatistic(s bots.Situation) {
@@ -115,11 +117,12 @@ func transferMoney(s bots.Situation, breakTime int64) {
 	u.CompletedToday++
 
 	dataBase := bots.GetDB(s.BotLang)
-	_, err := dataBase.Query("UPDATE users SET balance = ?, completed = ?, completed_today = ? WHERE id = ?;",
+	rows, err := dataBase.Query("UPDATE users SET balance = ?, completed = ?, completed_today = ? WHERE id = ?;",
 		u.Balance, u.Completed, u.CompletedToday, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 }
 
 func (u *User) reachedMaxAmountPerDay(botLang string) {
@@ -191,10 +194,11 @@ func (u *User) CheckSubscribeToWithdrawal(s bots.Situation, amount int) bool {
 
 	u.Balance -= amount
 	dataBase := bots.GetDB(s.BotLang)
-	_, err := dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", u.Balance, u.ID)
+	rows, err := dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", u.Balance, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	msg := tgbotapi.NewMessage(int64(u.ID), assets.LangText(u.Language, "successfully_withdrawn"))
 	msgs2.SendMsgToUser(s.BotLang, msg)
@@ -216,10 +220,11 @@ func (u *User) GetABonus(s bots.Situation) {
 
 	u.Balance += assets.AdminSettings.Parameters[s.BotLang].BonusAmount
 	dataBase := bots.GetDB(s.BotLang)
-	_, err := dataBase.Query("UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;", u.Balance, true, u.ID)
+	rows, err := dataBase.Query("UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;", u.Balance, true, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	text := assets.LangText(u.Language, "bonus_have_received")
 	msgs2.SendSimpleMsg(s.BotLang, int64(u.ID), text)
@@ -263,10 +268,11 @@ func addMemberToSubsBase(s bots.Situation) {
 	if user.ID != 0 {
 		return
 	}
-	_, err = dataBase.Query("INSERT INTO subs VALUES(?);", s.UserID)
+	rows, err = dataBase.Query("INSERT INTO subs VALUES(?);", s.UserID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 }
 
 func readUser(rows *sql.Rows) User {

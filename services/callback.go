@@ -134,10 +134,11 @@ func setLanguage(s bots.Situation, newLang string) {
 	}
 
 	dataBase := bots.GetDB(s.BotLang)
-	_, err := dataBase.Query("UPDATE users SET lang = ? WHERE id = ?;", newLang, s.UserID)
+	rows, err := dataBase.Query("UPDATE users SET lang = ? WHERE id = ?;", newLang, s.UserID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	s.Command = "/start"
 	checkMessage(s)

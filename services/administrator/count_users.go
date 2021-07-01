@@ -42,22 +42,20 @@ func countAllUsers() int {
 	return sum
 }
 
-func countBlockedUsers() int {
-	var count int
-	for _, value := range assets.AdminSettings.BlockedUsers {
-		count += value
-	}
-	return count
+func countBlockedUsers(botLang string) int {
+	//var count int
+	//for _, value := range assets.AdminSettings.BlockedUsers {
+	//	count += value
+	//}
+	//return count
+	return assets.AdminSettings.BlockedUsers[botLang]
 }
 
-func countSubscribers() int {
-	var sum int
-	for _, handler := range bots.Bots {
-		rows, err := handler.DataBase.Query("SELECT COUNT(*) FROM subs;")
-		if err != nil {
-			log.Println(err.Error())
-		}
-		sum += readRows(rows)
+func countSubscribers(botLang string) int {
+	rows, err := bots.Bots[botLang].DataBase.Query("SELECT COUNT(DISTINCT id) FROM subs;")
+	if err != nil {
+		log.Println(err.Error())
 	}
-	return sum
+
+	return readRows(rows)
 }

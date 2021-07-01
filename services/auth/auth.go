@@ -63,10 +63,11 @@ func createSimpleUser(botLang string, message *tgbotapi.Message) User {
 
 func (u *User) AddNewUser(botLang string, referralID int) {
 	dataBase := bots.GetDB(botLang)
-	_, err := dataBase.Query("INSERT INTO users VALUES(?, 0, 0, 0, 0, 0, FALSE, ?);", u.ID, u.Language)
+	rows, err := dataBase.Query("INSERT INTO users VALUES(?, 0, 0, 0, 0, 0, FALSE, ?);", u.ID, u.Language)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	if referralID == u.ID || referralID == 0 {
 		return
@@ -74,11 +75,12 @@ func (u *User) AddNewUser(botLang string, referralID int) {
 
 	baseUser := GetUser(botLang, referralID)
 	baseUser.Balance += assets.AdminSettings.Parameters[botLang].ReferralAmount
-	_, err = dataBase.Query("UPDATE users SET balance = ?, referral_count = ? WHERE id = ?;",
+	rows, err = dataBase.Query("UPDATE users SET balance = ?, referral_count = ? WHERE id = ?;",
 		baseUser.Balance, baseUser.ReferralCount+1, baseUser.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 }
 
 func GetUser(botLang string, id int) User {

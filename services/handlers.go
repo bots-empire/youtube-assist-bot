@@ -512,10 +512,11 @@ func (c *PromotionCaseAnswerCommand) Serve(s bots.Situation) {
 	}
 	user.Balance -= cost
 	dataBase := bots.GetDB(s.BotLang)
-	_, err = dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", user.Balance, user.ID)
+	rows, err := dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", user.Balance, user.ID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "promotion_successfully_order"))
 	msgs2.SendMsgToUser(s.BotLang, msg)
