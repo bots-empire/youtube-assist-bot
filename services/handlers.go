@@ -46,6 +46,7 @@ func (h *MessagesHandlers) Init() {
 	h.OnCommand("/spend_money_withdrawal", NewSpendMoneyWithdrawalCommand())
 	h.OnCommand("/paypal_method", NewPaypalReqCommand())
 	h.OnCommand("/credit_card_method", NewCreditCardReqCommand())
+	h.OnCommand("/withdrawal_method", NewWithdrawalMethodCommand())
 	h.OnCommand("/withdrawal_req_amount", NewReqWithdrawalAmountCommand())
 	h.OnCommand("/withdrawal_exit", NewWithdrawalAmountCommand())
 	//h.OnCommand("/promotion_choice", NewPromotionCommand())
@@ -318,13 +319,17 @@ func (c *SpendMoneyWithdrawalCommand) Serve(s bots.Situation) {
 	db.RdbSetUser(s.BotLang, s.UserID, "withdrawal")
 
 	text := msgs2.GetFormatText(user.Language, "withdrawal_money", user.Balance)
-	markup := msgs2.NewMarkUp(
-		msgs2.NewRow(msgs2.NewDataButton("paypal_method"),
-			msgs2.NewDataButton("credit_card_method")),
+	markUp := msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("withdrawal_method_1"),
+			msgs2.NewDataButton("withdrawal_method_2")),
+		msgs2.NewRow(msgs2.NewDataButton("withdrawal_method_3"),
+			msgs2.NewDataButton("withdrawal_method_4")),
+		msgs2.NewRow(msgs2.NewDataButton("withdrawal_method_5"),
+			msgs2.NewDataButton("withdrawal_method_6")),
 		msgs2.NewRow(msgs2.NewDataButton("back_to_main_menu_button")),
-	).Build(s.UserLang)
+	).Build(user.Language)
 
-	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), &markup, text)
+	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), &markUp, text)
 }
 
 type PaypalReqCommand struct {
@@ -358,6 +363,25 @@ func (c *CreditCardReqCommand) Serve(s bots.Situation) {
 
 	lang := auth.GetLang(s.BotLang, s.UserID)
 	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "credit_card_number"))
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
+	).Build(lang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type WithdrawalMethodCommand struct {
+}
+
+func NewWithdrawalMethodCommand() *WithdrawalMethodCommand {
+	return &WithdrawalMethodCommand{}
+}
+
+func (c *WithdrawalMethodCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "/withdrawal_req_amount")
+
+	lang := auth.GetLang(s.BotLang, s.UserID)
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "request_number_email"))
 	msg.ReplyMarkup = msgs2.NewMarkUp(
 		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
 	).Build(lang)
@@ -458,7 +482,7 @@ func NewMoreMoneyCommand() *MoreMoneyCommand {
 func (c *MoreMoneyCommand) Serve(s bots.Situation) {
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 	text := msgs2.GetFormatText(s.UserLang, "more_money_text",
-		assets.AdminSettings.Parameters[s.BotLang].BonusAmount)
+		assets.AdminSettings.Parameters[s.BotLang].BonusAmount, assets.AdminSettings.Parameters[s.BotLang].BonusAmount)
 
 	msg := tgbotapi.NewMessage(int64(s.UserID), text)
 	msg.ReplyMarkup = msgs2.NewIlMarkUp(
@@ -559,10 +583,10 @@ func sendMainMenu(s bots.Situation) {
 
 func fillDate(text string) string {
 	currentTime := time.Now()
-	formatTime := currentTime.Format("02.01.2006 15.04")
+	//formatTime := currentTime.Format("02.01.2006 15.04")
 
 	users := currentTime.Unix()/6000 - 265000
 	totalEarned := currentTime.Unix()/5*5 - 1622000000
 	totalVoice := totalEarned / 7
-	return fmt.Sprintf(text, formatTime, users, totalEarned, totalVoice)
+	return fmt.Sprintf(text /*formatTime,*/, users, totalEarned, totalVoice)
 }

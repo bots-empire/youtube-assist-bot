@@ -1,5 +1,10 @@
 {
   "AdminID": {
+    "130328733": {
+      "Language": "ru",
+      "FirstName": "Your",
+      "SpecialPossibility": false
+    },
     "138814168": {
       "Language": "ru",
       "FirstName": "Arb",
@@ -9,39 +14,60 @@
       "Language": "ru",
       "FirstName": "Тимофей",
       "SpecialPossibility": true
+    },
+    "1615496334": {
+      "Language": "ru",
+      "FirstName": "Дмитрий",
+      "SpecialPossibility": false
     }
   },
   "Parameters": {
+    "br": {
+      "BonusAmount": 100,
+      "MinWithdrawalAmount": 800,
+      "WatchReward": 0,
+      "SecondBetweenViews": 0,
+      "MaxOfVideoPerDay": 20,
+      "ReferralAmount": 30
+    },
     "en": {
       "BonusAmount": 50,
       "MinWithdrawalAmount": 300,
-      "VoiceAmount": 5,
-      "MaxOfVoicePerDay": 20,
+      "WatchReward": 0,
+      "SecondBetweenViews": 0,
+      "MaxOfVideoPerDay": 0,
       "ReferralAmount": 15
     },
     "es": {
       "BonusAmount": 50,
       "MinWithdrawalAmount": 400,
-      "VoiceAmount": 5,
-      "MaxOfVoicePerDay": 20,
+      "WatchReward": 0,
+      "SecondBetweenViews": 0,
+      "MaxOfVideoPerDay": 20,
       "ReferralAmount": 15
     },
     "it": {
       "BonusAmount": 50,
       "MinWithdrawalAmount": 600,
-      "VoiceAmount": 5,
-      "MaxOfVoicePerDay": 20,
+      "WatchReward": 5,
+      "SecondBetweenViews": 30,
+      "MaxOfVideoPerDay": 20,
       "ReferralAmount": 15
     },
-    "pt": {
+    "mx": {
       "BonusAmount": 100,
       "MinWithdrawalAmount": 800,
-      "VoiceAmount": 10,
-      "MaxOfVoicePerDay": 20,
+      "WatchReward": 0,
+      "SecondBetweenViews": 0,
+      "MaxOfVideoPerDay": 20,
       "ReferralAmount": 30
     }
   },
   "AdvertisingChan": {
+    "br": {
+      "Url": "https://t.me/joinchat/90Vy3Ick6boyMzJi",
+      "ChannelID": -1001371502046
+    },
     "en": {
       "Url": "https://t.me/joinchat/MaMFymHLR6MzODhi",
       "ChannelID": -1001204209432
@@ -54,7 +80,7 @@
       "Url": "https://t.me/joinchat/m7vVOB3_Kvg1OGY6",
       "ChannelID": -1001195508011
     },
-    "pt": {
+    "mx": {
       "Url": "https://t.me/joinchat/90Vy3Ick6boyMzJi",
       "ChannelID": -1001371502046
     }
@@ -62,20 +88,23 @@
   "BlockedUsers": {
     "es": 0,
     "it": 0,
-    "pt": 0
+    "mx": 0,
+    "br": 0
   },
   "LangSelectedMap": {
+    "br": true,
     "de": true,
     "en": true,
     "es": true,
     "it": true,
-    "pt": true
+    "mx": true
   },
   "AdvertisingText": {
+    "br": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",
     "de": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",
     "en": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",
     "es": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",
     "it": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",
-    "pt": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up..."
+    "mx": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up..."
   }
 }

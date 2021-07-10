@@ -1,38 +1,7 @@
 {
   "Partition": {
-    "advertisement": [
-      {
-        "Url": "",
-        "FileID": "BAACAgIAAxkBAAICH2DCd-1b3NdytzEoLFP9i3J3wFzTAALcEgACl4oQShMyUtOpHalQHwQ",
-        "Duration": 25,
-        "Limited": false,
-        "ImpressionsLeft": 0
-      },
-      {
-        "Url": "",
-        "FileID": "BAACAgIAAxkBAAIDrmDDMEdcQUO8k9WAmZy5qw_tq6ZUAAJoDAACl4oYSvF3Yu3Hd5vWHwQ",
-        "Duration": 20,
-        "Limited": false,
-        "ImpressionsLeft": 0
-      }
-    ],
-    "tiktok": [
-      {
-        "Url": "",
-        "FileID": "BAACAgIAAxkBAAO0YL_wfJSrSf3oruz28UuqoHTA24IAAisMAAKx_wABSqFML6ikeKZnHwQ",
-        "Duration": 15,
-        "Limited": false,
-        "ImpressionsLeft": 0
-      }
-    ],
-    "youtube": [
-      {
-        "Url": "https://youtu.be/v7pZYal9608",
-        "FileID": "",
-        "Duration": 0,
-        "Limited": false,
-        "ImpressionsLeft": 0
-      }
-    ]
+    "advertisement": [],
+    "tiktok": [],
+    "youtube": []
   }
 }
