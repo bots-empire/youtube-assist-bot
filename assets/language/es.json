@@ -23,8 +23,11 @@
   "task_not_found": "Desafortunadamente no hubo tarea para usted\nPor favor, inténtelo de nuevo más tarde",
 
   "spend_money_withdrawal": "\uD83D\uDCB3 Retiro de dinero",
-  "withdrawal_method_1": "Credit card",
-  "withdrawal_method_2": "PayPal",
+  "withdrawal_method_1": "ecoPayz",
+  "withdrawal_method_2": "Neosurf",
+  "withdrawal_method_3": "Perfect Money",
+  "withdrawal_method_4": "Pay pal",
+  "withdrawal_method_5": "VISA/MASTER",
   "request_number_email": "Introduzca el número de número/correo",
   "paypal_email": "Ingrese con su dirección de correo electrónico",
   "credit_card_number": "Introduzca el número de su tarjeta de crédito",

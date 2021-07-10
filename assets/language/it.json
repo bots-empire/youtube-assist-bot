@@ -23,8 +23,11 @@
   "task_not_found": "Purtroppo non c'era alcun compito per voi \nPlease riprovare più tardi",
 
   "spend_money_withdrawal": "Prelievo di fondi \uD83C\uDFE6",
-  "withdrawal_method_1": "Carta di credito",
-  "withdrawal_method_2": "PayPal",
+  "withdrawal_method_1": "ecoPayz",
+  "withdrawal_method_2": "Neteller",
+  "withdrawal_method_3": "Skrill",
+  "withdrawal_method_4": "VISA/MASTER",
+  "withdrawal_method_5": "Pay pal",
   "request_number_email": "inserisci il numero della postale/numero",
   "paypal_email": "Inserisci il tuo indirizzo email",
   "credit_card_number": "Inserisci il tuo numero di carta di credito",
