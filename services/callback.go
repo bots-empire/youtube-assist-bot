@@ -13,6 +13,10 @@ import (
 	"strings"
 )
 
+const (
+	updateLangQuery = "UPDATE users SET lang = ? WHERE id = ?;"
+)
+
 type CallBackHandlers struct {
 	Handlers map[string]bots.Handler
 }
@@ -134,7 +138,7 @@ func setLanguage(s bots.Situation, newLang string) {
 	}
 
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("UPDATE users SET lang = ? WHERE id = ?;", newLang, s.UserID)
+	rows, err := dataBase.Query(updateLangQuery, newLang, s.UserID)
 	if err != nil {
 		panic(err.Error())
 	}

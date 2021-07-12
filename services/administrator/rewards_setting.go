@@ -10,6 +10,15 @@ import (
 	"strings"
 )
 
+const (
+	bonusAmountName    = "bonus_amount"
+	minWithdrawalName  = "min_withdrawal_amount"
+	watchAmountName    = "watch_amount"
+	breakAmountName    = "break_amount"
+	watchPdAmountName  = "watch_pd_amount"
+	referralAmountName = "referral_amount"
+)
+
 type MakeMoneySettingCommand struct {
 }
 
@@ -102,22 +111,22 @@ func (c *ChangeParameterCommand) Serve(s bots.Situation) {
 
 	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_parameter?"+changeParameter)
 	switch changeParameter {
-	case "bonus_amount":
+	case bonusAmountName:
 		parameter = assets.AdminText(lang, "change_bonus_amount_button")
 		value = assets.AdminSettings.Parameters[s.BotLang].BonusAmount
-	case "min_withdrawal_amount":
+	case minWithdrawalName:
 		parameter = assets.AdminText(lang, "change_min_withdrawal_amount_button")
 		value = assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount
-	case "watch_amount":
+	case watchAmountName:
 		parameter = assets.AdminText(lang, "change_watch_amount_button")
 		value = assets.AdminSettings.Parameters[s.BotLang].WatchReward
-	case "break_amount":
+	case breakAmountName:
 		parameter = assets.AdminText(lang, "change_break_watch_button")
 		value = int(assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)
-	case "watch_pd_amount":
+	case watchPdAmountName:
 		parameter = assets.AdminText(lang, "change_watch_pd_amount_button")
 		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay
-	case "referral_amount":
+	case referralAmountName:
 		parameter = assets.AdminText(lang, "change_referral_amount_button")
 		value = assets.AdminSettings.Parameters[s.BotLang].ReferralAmount
 	}

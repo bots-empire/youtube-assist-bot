@@ -7,6 +7,11 @@ import (
 	"strconv"
 )
 
+const (
+	emptyLevelName = "empty"
+	nilRedisErr    = "redis: nil"
+)
+
 func RdbSetUser(botLang string, ID int, level string) {
 	userID := userIDToRdb(ID)
 	_, err := bots.Bots[botLang].Rdb.Set(userID, level, 0).Result()
@@ -26,7 +31,7 @@ func GetLevel(botLang string, id int) string {
 		log.Println(err)
 	}
 	if have == 0 {
-		return "empty"
+		return emptyLevelName
 	}
 
 	value, err := bots.Bots[botLang].Rdb.Get(userID).Result()
@@ -131,7 +136,7 @@ func makeMoneyLevelKey(partition string, userID int) string {
 func RdbGetMakeMoneyLevel(s bots.Situation) string {
 	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.UserID)
 	result, err := bots.Bots[s.BotLang].Rdb.Get(makeMoneyID).Result()
-	if err != nil && err.Error() != "redis: nil" {
+	if err != nil && err.Error() != nilRedisErr {
 		log.Println(err)
 	}
 

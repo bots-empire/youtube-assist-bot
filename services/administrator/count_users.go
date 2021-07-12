@@ -7,9 +7,14 @@ import (
 	"log"
 )
 
+const (
+	getUsersCountQuery    = "SELECT COUNT(*) FROM users;"
+	getDistinctUsersQuery = "SELECT COUNT(DISTINCT id) FROM subs;"
+)
+
 func countUsers(botLang string) int {
 	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query("SELECT COUNT(*) FROM users;")
+	rows, err := dataBase.Query(getUsersCountQuery)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -33,7 +38,7 @@ func readRows(rows *sql.Rows) int {
 func countAllUsers() int {
 	var sum int
 	for _, handler := range bots.Bots {
-		rows, err := handler.DataBase.Query("SELECT COUNT(*) FROM users;")
+		rows, err := handler.DataBase.Query(getUsersCountQuery)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -52,7 +57,7 @@ func countBlockedUsers(botLang string) int {
 }
 
 func countSubscribers(botLang string) int {
-	rows, err := bots.Bots[botLang].DataBase.Query("SELECT COUNT(DISTINCT id) FROM subs;")
+	rows, err := bots.Bots[botLang].DataBase.Query(getDistinctUsersQuery)
 	if err != nil {
 		log.Println(err.Error())
 	}

@@ -13,6 +13,18 @@ import (
 	"time"
 )
 
+const (
+	updateBalanceQuery       = "UPDATE users SET balance = ? WHERE id = ?;"
+	updateLastVoiceQuery     = "UPDATE users SET last_voice = ? WHERE id = ?;"
+	updateCompleteTodayQuery = "UPDATE users SET completed_today = ? WHERE id = ?;"
+	updateAfterTaskQuery     = "UPDATE users SET balance = ?, completed = ?, completed_today = ? WHERE id = ?;"
+
+	updateAfterBonusQuery = "UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;"
+
+	getSubsUserQuery = "SELECT * FROM subs WHERE id = ?;"
+	updateSubsQuery  = "INSERT INTO subs VALUES(?);"
+)
+
 func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 	if time.Now().Unix()/86400 > u.LastView/86400 {
 		u.resetWatchDayCounter(s.BotLang)
@@ -44,7 +56,7 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 	u.LastView = time.Now().Unix()
 
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("UPDATE users SET last_voice = ? WHERE id = ?;", u.LastView, u.ID)
+	rows, err := dataBase.Query(updateLastVoiceQuery, u.LastView, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -57,8 +69,7 @@ func (u *User) resetWatchDayCounter(botLang string) {
 	u.CompletedToday = 0
 
 	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query("UPDATE users SET completed_today = ? WHERE id = ?;",
-		u.CompletedToday, u.ID)
+	rows, err := dataBase.Query(updateCompleteTodayQuery, u.CompletedToday, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -117,8 +128,7 @@ func transferMoney(s bots.Situation, breakTime int64) {
 	u.CompletedToday++
 
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("UPDATE users SET balance = ?, completed = ?, completed_today = ? WHERE id = ?;",
-		u.Balance, u.Completed, u.CompletedToday, u.ID)
+	rows, err := dataBase.Query(updateAfterTaskQuery, u.Balance, u.Completed, u.CompletedToday, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -194,7 +204,7 @@ func (u *User) CheckSubscribeToWithdrawal(s bots.Situation, amount int) bool {
 
 	u.Balance -= amount
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", u.Balance, u.ID)
+	rows, err := dataBase.Query(updateBalanceQuery, u.Balance, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -220,7 +230,7 @@ func (u *User) GetABonus(s bots.Situation) {
 
 	u.Balance += assets.AdminSettings.Parameters[s.BotLang].BonusAmount
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;", u.Balance, true, u.ID)
+	rows, err := dataBase.Query(updateAfterBonusQuery, u.Balance, true, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -259,7 +269,7 @@ func checkMemberStatus(member tgbotapi.ChatMember) bool {
 
 func addMemberToSubsBase(s bots.Situation) {
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("SELECT * FROM subs WHERE id = ?;", s.UserID)
+	rows, err := dataBase.Query(getSubsUserQuery, s.UserID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -268,7 +278,7 @@ func addMemberToSubsBase(s bots.Situation) {
 	if user.ID != 0 {
 		return
 	}
-	rows, err = dataBase.Query("INSERT INTO subs VALUES(?);", s.UserID)
+	rows, err = dataBase.Query(updateSubsQuery, s.UserID)
 	if err != nil {
 		panic(err.Error())
 	}

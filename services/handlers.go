@@ -15,6 +15,15 @@ import (
 	"time"
 )
 
+const (
+	updateCounterHeader = "Today Update's counter: %d"
+	updatePrintHeader   = "update number: %d	// youtube-bot-update:	"
+	extraneousUpdate    = "extraneous update"
+	notificationChatID  = 1418862576
+
+	updateBalanceQuery = "UPDATE users SET balance = ? WHERE id = ?;"
+)
+
 type MessagesHandlers struct {
 	Handlers map[string]bots.Handler
 }
@@ -94,10 +103,10 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 
 func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
 	if (time.Now().Unix()+6500)/86400 > int64(assets.UpdateStatistic.Day) {
-		text := "Today Update's counter: " + strconv.Itoa(assets.UpdateStatistic.Counter)
-		msgID := msgs2.NewIDParseMessage("it", 1418862576, text)
-		msgs2.SendMsgToUser("it", tgbotapi.PinChatMessageConfig{
-			ChatID:    1418862576,
+		text := fmt.Sprintf(updateCounterHeader, assets.UpdateStatistic.Counter)
+		msgID := msgs2.NewIDParseMessage(administrator.DefaultNotificationBot, 1418862576, text)
+		msgs2.SendMsgToUser(administrator.DefaultNotificationBot, tgbotapi.PinChatMessageConfig{
+			ChatID:    notificationChatID,
 			MessageID: msgID,
 		})
 		assets.UpdateStatistic.Counter = 0
@@ -106,7 +115,7 @@ func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
 	assets.UpdateStatistic.Counter++
 	assets.SaveUpdateStatistic()
 
-	fmt.Print("update number: " + strconv.Itoa(assets.UpdateStatistic.Counter) + "	// youtube-bot-update:	")
+	fmt.Printf(updatePrintHeader, assets.UpdateStatistic.Counter)
 	if update.Message != nil {
 		if update.Message.Text != "" {
 			fmt.Println(botLang, update.Message.Text)
@@ -119,7 +128,7 @@ func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
 		return
 	}
 
-	fmt.Println(botLang, "extraneous update")
+	fmt.Println(botLang, extraneousUpdate)
 }
 
 //func PrintNewSituation(situation bots.Situation) {
@@ -536,7 +545,7 @@ func (c *PromotionCaseAnswerCommand) Serve(s bots.Situation) {
 	}
 	user.Balance -= cost
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query("UPDATE users SET balance = ? WHERE id = ?;", user.Balance, user.ID)
+	rows, err := dataBase.Query(updateBalanceQuery, user.Balance, user.ID)
 	if err != nil {
 		panic(err.Error())
 	}

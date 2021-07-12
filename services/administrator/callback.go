@@ -9,8 +9,12 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/services/auth"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
-	"strconv"
 	"strings"
+)
+
+const (
+	DefaultNotificationBot = "it"
+	updateNowCounterHeader = "Now Update's counter: %d"
 )
 
 type AdminCallbackHandlers struct {
@@ -138,8 +142,8 @@ func NewGetUpdateCommand() *GetUpdateCommand {
 
 func (c *GetUpdateCommand) Serve(s bots.Situation) {
 	if s.UserID == 1418862576 {
-		text := "Now Update's counter: " + strconv.Itoa(assets.UpdateStatistic.Counter)
-		msgs2.NewParseMessage("it", 1418862576, text)
+		text := fmt.Sprintf(updateNowCounterHeader, assets.UpdateStatistic.Counter)
+		msgs2.NewParseMessage(DefaultNotificationBot, 1418862576, text)
 	}
 }
 

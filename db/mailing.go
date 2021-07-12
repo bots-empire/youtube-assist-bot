@@ -8,13 +8,17 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
+const (
+	getLangIDQuery = "SELECT id, lang FROM users;"
+)
+
 var (
 	message = make(map[string]tgbotapi.MessageConfig, 5)
 )
 
 func StartMailing(botLang string) {
 	dataBase := bots.Bots[botLang].DataBase
-	rows, err := dataBase.Query("SELECT id, lang FROM users;")
+	rows, err := dataBase.Query(getLangIDQuery)
 	if err != nil {
 		panic(err.Error())
 	}

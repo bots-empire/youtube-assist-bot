@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+const (
+	commandsPath             = "assets/commands"
+	beginningOfAdminLangPath = "assets/admin/"
+	beginningOfUserLangPath  = "assets/language/"
+)
+
 var (
 	AvailableAdminLang = []string{"en", "ru"}
 	AvailableLang      = []string{"it", "br", "es", "mx", "en" /*, "de"*/}
@@ -32,32 +38,9 @@ type Link struct {
 	ImpressionsLeft int
 }
 
-//type Quest interface {
-//	GetTask() string
-//	IsLimited() bool
-//	GetImpressionsLeft() int
-//	DecreaseImpressionsLeft()
-//}
-//
-//func (l *Link) GetTask() string {
-//	return l.Url
-//}
-//
-//func (l *Link) IsLimited() bool {
-//	return l.Limited
-//}
-//
-//func (l *Link) GetImpressionsLeft() int {
-//	return l.ImpressionsLeft
-//}
-//
-//func (l *Link) DecreaseImpressionsLeft() {
-//	l.ImpressionsLeft--
-//}
-
 func ParseLangMap() {
 	for i, lang := range AvailableLang {
-		bytes, _ := os.ReadFile("./assets/language/" + lang + ".json")
+		bytes, _ := os.ReadFile(beginningOfUserLangPath + lang + jsonFormatName)
 		_ = json.Unmarshal(bytes, &Language[i])
 	}
 }
@@ -70,7 +53,7 @@ func LangText(lang, key string) string {
 func ParseTasks() {
 	for _, lang := range AvailableLang {
 		task := Task{}
-		bytes, _ := os.ReadFile("./assets/task/" + lang + ".json")
+		bytes, _ := os.ReadFile(beginningOfTaskPath + lang + jsonFormatName)
 		_ = json.Unmarshal(bytes, &task)
 		Tasks[lang] = task
 	}
@@ -110,13 +93,13 @@ func checkLimitedLink(s bots.Situation, num int) bool {
 }
 
 func ParseCommandsList() {
-	bytes, _ := os.ReadFile("./assets/commands.json")
+	bytes, _ := os.ReadFile(commandsPath + jsonFormatName)
 	_ = json.Unmarshal(bytes, &Commands)
 }
 
 func ParseAdminMap() {
 	for i, lang := range AvailableAdminLang {
-		bytes, _ := os.ReadFile("./assets/admin/" + lang + ".json")
+		bytes, _ := os.ReadFile(beginningOfAdminLangPath + lang + jsonFormatName)
 		_ = json.Unmarshal(bytes, &AdminLibrary[i])
 	}
 }

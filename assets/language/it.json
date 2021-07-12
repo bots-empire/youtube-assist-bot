@@ -58,7 +58,7 @@
   "minimum_amount_not_reached": "Errore! Importo minimo di prelievo è %d EUR.\n\nSpecificare l'importo del prelievo \uD83D\uDC47",
   "withdrawal_not_subs_text": "Iscriviti al canale sponsorizzato e visualizza i primi 15 post per prelevare i tuoi soldi!",
   "invitation_to_subscribe": "Abbiamo controllato il tuo abbonamento",
-  "im_subscribe_button": "Ho fatto le condizioni ✅ ",
+  "im_subscribe_button": "Ho fatto le condizioni ✅",
   "successfully_withdrawn": " ✅ La richiesta è stata inviata al gateway di pagamento...\n\nIl Pagamento può richiedere fino a 3 giorni lavorativi !",
   "referral_text": "💼 Ottieni bonus per gli amici invitati\n📲 Invia un link ad un amico - %s?start=%d\n\n%d € - si ottiene per ogni amico invitato.\n\n\nHai invitato: %d (Numero di persone)",
   "more_money_text": "❓VUOI %d€ PER UN ABBONAMENTO AL CANALE?!\n\n\uD83D\uDC49Iscriviti al canale e guardare le nuove voci, quindi fare clic sul pulsante \"Ottieni fondi\". Si ottiene %d€\n\n❗️ Attenzione: se si annulla l'abbonamento al canale sponsor, il pagamento non sarà effettuato\n",

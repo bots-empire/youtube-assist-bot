@@ -175,17 +175,17 @@ func (c *UpdateParameterCommand) Serve(s bots.Situation) {
 	partition := strings.Split(s.Params.Level, "?")[1]
 
 	switch partition {
-	case "bonus_amount":
+	case bonusAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].BonusAmount = newAmount
-	case "min_withdrawal_amount":
+	case minWithdrawalName:
 		assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount = newAmount
-	case "watch_amount":
+	case watchAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].WatchReward = newAmount
-	case "break_amount":
+	case breakAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews = int64(newAmount)
-	case "watch_pd_amount":
+	case watchPdAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay = newAmount
-	case "referral_amount":
+	case referralAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].ReferralAmount = newAmount
 	}
 	assets.SaveAdminSettings()

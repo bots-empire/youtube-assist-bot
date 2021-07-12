@@ -9,6 +9,12 @@ import (
 	"os"
 )
 
+const (
+	tokensPath       = "./cfg/tokens.json"
+	dbDriver         = "mysql"
+	redisDefaultAddr = "127.0.0.1:6379"
+)
+
 var Bots = make(map[string]*GlobalBot)
 
 type GlobalBot struct {
@@ -61,8 +67,7 @@ type LinkInfo struct {
 }
 
 func UploadDataBase(dbLang string) *sql.DB {
-	dataBase, err := sql.Open("mysql",
-		cfg.DBCfg.User+cfg.DBCfg.Password+"@/"+cfg.DBCfg.Names[dbLang])
+	dataBase, err := sql.Open(dbDriver, cfg.DBCfg.User+cfg.DBCfg.Password+"@/"+cfg.DBCfg.Names[dbLang])
 	if err != nil {
 		panic(err.Error())
 	}
@@ -71,7 +76,7 @@ func UploadDataBase(dbLang string) *sql.DB {
 
 func StartRedis(k int) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "127.0.0.1:6379",
+		Addr:     redisDefaultAddr,
 		Password: "", // no password set
 		DB:       k,  // use default DB
 	})
@@ -87,7 +92,7 @@ func GetDB(botLang string) *sql.DB {
 }
 
 func FillBotsConfig() {
-	bytes, _ := os.ReadFile("./cfg/tokens.json")
+	bytes, _ := os.ReadFile(tokensPath)
 	err := json.Unmarshal(bytes, &Bots)
 	if err != nil {
 		panic(err)
