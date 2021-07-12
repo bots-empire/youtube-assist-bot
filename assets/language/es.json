@@ -47,7 +47,7 @@
 
   "profile_text": "Tu perfil \uD83E\uDDD4 \n\nNombre: %s\nEstado de cuenta: %d\nNúmero de vídeos vistos: %d \nAmigos Invitados: %d",
   "statistic_to_user": "\uD83D\uDCCA Bot de Estadísticas\n\n👤 <b>Bot de Usuarios:</b> %d\n💰 <b>Ganado por los usuarios:</b> %d\n\uD83D\uDC40 <b>Total de vistas de vídeo:</b> %d",
-  "withdrawal_money": "Balance <b> Balance:</b> %d EUR.\n\nSelect el método de pago ⬇️ ",
+  "withdrawal_money": "<b>Saldo:</b> %d EUR.\nElije un método de retiro ⬇️",
   "advertising_button": "\uD83D\uDCF2 Suscribirse al canal",
   "get_bonus_button": "✅ Obtener bono",
   "user_dont_subscribe_the_channel": "No está suscrito al canal ⬆️ \nPara obtener un bono suscríbase al canal e inténtelo de nuevo",
