@@ -55,7 +55,7 @@
   "req_withdrawal_amount": "Especifique la cantidad de retiro \uD83D\uDC47",
   "incorrect_amount": "Incorrect input\n\nSpecify the withdrawal amount \uD83D\uDC47",
   "lack_of_funds": "¡Los fondos no son suficientes !\n\nespecificar la cantidad de retiro \uD83D\uDC47",
-  "minimum_amount_not_reached": "Error! La cantidad mínima de retiro es %d d.\n\nespecificar la cantidad de retiro \uD83D\uDC47",
+  "minimum_amount_not_reached": "Error! La cantidad mínima de retiro es %d EUR.\n\nespecificar la cantidad de retiro \uD83D\uDC47",
   "withdrawal_not_subs_text": "Suscribirse al canal patrocinado y ver los primeros 15 mensajes para retirar su dinero!",
   "invitation_to_subscribe": "Comprobamos su suscripción",
   "im_subscribe_button": "he hecho las condiciones ✅ ",
