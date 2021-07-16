@@ -1,6 +1,6 @@
 {
   "main_select_menu": "Seleccione um item de menu \uD83D\uDC47",
-  "main_make_money": "Rentabilizar \uD83E\uDD33",
+  "main_make_money": "Ganhar dinheiro \uD83E\uDD33",
   "main_spend_money": "Gastar \uD83D\uDCB8",
   "main_money_for_a_friend": "Dinheiro para um amigo \uD83C\uDF81",
   "main_more_money": "Mais Dinheiro \uD83D\uDE80",
@@ -10,7 +10,7 @@
   "make_money_text": "Escolha uma plataforma para ganhar dinheiro \uD83D\uDC47",
   "make_money_youtube": "YouTube",
   "make_money_tiktok": "Tik-Tok",
-  "make_money_advertisement": "Anuncio",
+  "make_money_advertisement": "Publicidade",
   "back_to_make_money_button": "⬅️ Rentabilizar \uD83E\uDD33",
   "back_to_main_menu_button": "⬅️ Menu",
 
@@ -22,7 +22,7 @@
   "watch_previous_video": "Watch the entire video",
   "task_not_found": "infelizmente não havia nenhuma tarefa para você\nPlease tentar novamente mais tarde",
 
-  "spend_money_withdrawal": "Withdrawal \uD83C\uDFE6",
+  "spend_money_withdrawal": "Retirar dinheiro \uD83C\uDFE6",
   "withdrawal_method_1": "Neteller",
   "withdrawal_method_2": "Skrill",
   "withdrawal_method_3": "EcoPayz",
@@ -49,8 +49,8 @@
   "profile_text": "O seu perfil \uD83E\uDDD4\n\nNome: %s\nEquilíbrio \uD83D\uDCB5 : %d R$\nNúmero de vídeos vistos: %d\nAmigos Convidados: %d",
   "statistic_to_user": "Estatísticas do bot \uD83D\uDCCA\n\nUsuários no bot \uD83D\uDC65 : %d\ntotal ganho \uD83D\uDCB0 : %d\nTotal de visualizações: %d",
   "withdrawal_money": "Equilíbrio: %d R$\n\nEscolha um método de pagamento ⬇️",
-  "advertising_button": "Go Go to the channel",
-  "get_bonus_button": "Get Get bonus",
+  "advertising_button": "\uD83D\uDCF2 Iscriviti al canale",
+  "get_bonus_button": "✅ Ottieni fondi",
   "user_dont_subscribe_channel": "não está subscrito ao canal ⬆️\npara obter um bónus subscreva o canal e tente de novo",
   "withdraw_money_button": "Withdraw Levantamento monetário",
   "req_withdrawal_amount": "especifique o montante de retirada \uD83D\uDC47",
