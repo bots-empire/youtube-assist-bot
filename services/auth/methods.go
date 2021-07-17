@@ -139,6 +139,9 @@ func (u *User) reachedMaxAmountPerDay(botLang string) {
 	text := assets.LangText(u.Language, "reached_max_amount_per_day")
 	text = fmt.Sprintf(text, assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDay, assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDay)
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
+	msg.ReplyMarkup = msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlURLButton("advertisement_button_text", assets.AdminSettings.AdvertisingChan[u.Language].Url)),
+	).Build(u.Language)
 
 	msgs2.SendMsgToUser(botLang, msg)
 }

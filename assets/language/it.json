@@ -17,7 +17,7 @@
   "next_task_il_button": "Attività successiva \uD83D\uDC40",
   "make_money_statistic": "<b>Completato</b>️️: %d of %d\n\n<b>Il tuo saldo</b> \uD83D\uDCB5: %dWatch\n\n Guarda questo video per almeno un minuto per guadagnare %d EUR",
   "invitation_to_watch_youtube": "Guarda l'annuncio di YouTube: %s",
-  "reached_max_amount_per_day": " ✅ Hai già visto i %d/%d video disponibili per oggi!\nCome indietro in 24 ore per continuare a guadagnare soldi...",
+  "reached_max_amount_per_day": "✅ Hai guardato %d/%d dei video disponibili\nNuovi video arriveranno tra 24 ore\nMentre non ci sono nuovi video, puoi guadagnare R$ extra in questo canale ⬇️",
   "break_time_not_passed": "Non hai ancora guardato il video precedente\uD83D\uDC46",
   "watch_previous_video": "Guarda l'intero video",
   "task_not_found": "Purtroppo non c'era alcun compito per voi \nPlease riprovare più tardi",
@@ -45,7 +45,7 @@
 
 
 
-  "profile_text": "Il tuo profilo \uD83E\uDDD4\n\nName: %s \nBalance \uD83D\uDCB5: %d EUR\nNumero di video visualizzati: %d \nInvited Amici: %d",
+  "profile_text": "Il tuo profilo \uD83E\uDDD4\n\nNome: %s \nSaldo \uD83D\uDCB5: %d EUR\nNumero di video visualizzati: %d \nInvited Amici: %d",
   "statistic_to_user": "Statistiche di bot \uD83D\uDCCA\n\nUtenti in bot \uD83D\uDC65: %d\nEarned dagli utenti \uD83D\uDCB0: %d \nTotal numero di visualizzazioni \uD83D\uDC40: %d",
   "withdrawal_money": "💰 <b>Equilibrio:</b> %d EUR.\n\nSe vuoi prelevare fondi, scegli dove accreditarli !",
   "advertising_button": "\uD83D\uDCF2 Iscriviti al canale",
