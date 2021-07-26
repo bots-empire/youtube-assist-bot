@@ -134,25 +134,49 @@ func NewSetNewTextUrlCommand() *SetNewTextUrlCommand {
 }
 
 func (c *SetNewTextUrlCommand) Serve(s bots.Situation) {
-	data := strings.Split(s.Params.Level, "?")
-	textLang := data[2]
-	capitation := data[1]
+	capitation := strings.Split(s.Params.Level, "?")[1]
+	lang := assets.AdminLang(s.UserID)
 	status := "operation_canceled"
 
 	switch capitation {
 	case "change_url":
-		assets.AdminSettings.AdvertisingChan[textLang].Url = s.Message.Text
-		status = "operation_completed"
+		advertChan := getUrlAndChatID(s.Message)
+		if advertChan.ChannelID == 0 {
+			text := assets.AdminText(lang, "chat_id_not_update")
+			msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+			return
+		}
+
+		assets.AdminSettings.AdvertisingChan[s.BotLang] = advertChan
 	case "change_text":
-		assets.AdminSettings.AdvertisingText[textLang] = s.Message.Text
-		status = "operation_completed"
+		assets.AdminSettings.AdvertisingText[s.BotLang] = s.Message.Text
 	}
 	assets.SaveAdminSettings()
+	status = "operation_completed"
 
 	setAdminBackButton(s.BotLang, s.UserID, status)
-	db.RdbSetUser(s.BotLang, s.UserID, "admin/"+capitation)
+	db.RdbSetUser(s.BotLang, s.UserID, "admin")
 	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
-	sendChangeWithLangMenu(s.BotLang, s.UserID, capitation)
+	s.Command = "admin/advertisement"
+	s.Params.Level = "admin/change_url"
+	CheckAdminCallback(s)
+}
+
+func getUrlAndChatID(message *tgbotapi.Message) *assets.AdvertChannel {
+	data := strings.Split(message.Text, "\n")
+	if len(data) != 2 {
+		return &assets.AdvertChannel{}
+	}
+
+	chatId, err := strconv.Atoi(data[1])
+	if err != nil {
+		return &assets.AdvertChannel{}
+	}
+
+	return &assets.AdvertChannel{
+		Url:       data[0],
+		ChannelID: int64(chatId),
+	}
 }
 
 type UpdateParameterCommand struct {
@@ -183,8 +207,12 @@ func (c *UpdateParameterCommand) Serve(s bots.Situation) {
 		assets.AdminSettings.Parameters[s.BotLang].WatchReward = newAmount
 	case breakAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews = int64(newAmount)
-	case watchPdAmountName:
-		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay = newAmount
+	case watchPdTAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayT = newAmount
+	case watchPdYAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayY = newAmount
+	case watchPdAAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayA = newAmount
 	case referralAmountName:
 		assets.AdminSettings.Parameters[s.BotLang].ReferralAmount = newAmount
 	}

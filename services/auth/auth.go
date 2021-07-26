@@ -13,7 +13,7 @@ import (
 
 const (
 	getUsersUserQuery        = "SELECT * FROM users WHERE id = ?;"
-	newUserQuery             = "INSERT INTO users VALUES(?, 0, 0, 0, 0, 0, FALSE, ?);"
+	newUserQuery             = "INSERT INTO users VALUES(?, 0, 0, 0, 0, 0, 0, 0, FALSE, ?);"
 	updateAfterReferralQuery = "UPDATE users SET balance = ?, referral_count = ? WHERE id = ?;"
 	getLangQuery             = "SELECT lang FROM users WHERE id = ?;"
 
@@ -110,25 +110,30 @@ func ReadUsers(rows *sql.Rows) []User {
 
 	for rows.Next() {
 		var (
-			id, balance, completed, completedToday, referralCount int
-			lastVoice                                             int64
-			takeBonus                                             bool
-			lang                                                  string
+			id, balance,
+			completed, completedT, completedY, completedA,
+			referralCount int
+			lastVoice int64
+			takeBonus bool
+			lang      string
 		)
 
-		if err := rows.Scan(&id, &balance, &completed, &completedToday, &lastVoice, &referralCount, &takeBonus, &lang); err != nil {
+		if err := rows.Scan(&id, &balance, &completed, &completedT, &completedY, &completedA,
+			&lastVoice, &referralCount, &takeBonus, &lang); err != nil {
 			panic("Failed to scan row: " + err.Error())
 		}
 
 		users = append(users, User{
-			ID:             id,
-			Balance:        balance,
-			Completed:      completed,
-			CompletedToday: completedToday,
-			LastView:       lastVoice,
-			ReferralCount:  referralCount,
-			TakeBonus:      takeBonus,
-			Language:       lang,
+			ID:            id,
+			Balance:       balance,
+			Completed:     completed,
+			CompletedT:    completedT,
+			CompletedY:    completedY,
+			CompletedA:    completedA,
+			LastView:      lastVoice,
+			ReferralCount: referralCount,
+			TakeBonus:     takeBonus,
+			Language:      lang,
 		})
 	}
 

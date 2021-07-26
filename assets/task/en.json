@@ -1,7 +1,31 @@
 {
   "Partition": {
-    "advertisement": [],
-    "tiktok": [],
-    "youtube": []
+    "advertisement": [
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIIPWD8XD49wf15JMy9PTX-I3522hReAAKMEAAChqvhSxSSs-hv5fQ9IAQ",
+        "Duration": 11,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ],
+    "tiktok": [
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIIN2D8XC3PVFPUQ5tpKJfNaZ2zZcqGAAKLEAAChqvhS4p7Q61zupkhIAQ",
+        "Duration": 5,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ],
+    "youtube": [
+      {
+        "Url": "Shjshdjdkd",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ]
   }
 }

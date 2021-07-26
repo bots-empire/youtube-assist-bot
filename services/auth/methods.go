@@ -16,8 +16,8 @@ import (
 const (
 	updateBalanceQuery       = "UPDATE users SET balance = ? WHERE id = ?;"
 	updateLastVoiceQuery     = "UPDATE users SET last_voice = ? WHERE id = ?;"
-	updateCompleteTodayQuery = "UPDATE users SET completed_today = ? WHERE id = ?;"
-	updateAfterTaskQuery     = "UPDATE users SET balance = ?, completed = ?, completed_today = ? WHERE id = ?;"
+	updateCompleteTodayQuery = "UPDATE users SET completed_t = ?, completed_y = ?, completed_a = ? WHERE id = ?;"
+	updateAfterTaskQuery     = "UPDATE users SET balance = ?, completed = ?, %s = ? WHERE id = ?;"
 
 	updateAfterBonusQuery = "UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;"
 
@@ -30,8 +30,8 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 		u.resetWatchDayCounter(s.BotLang)
 	}
 
-	if u.CompletedToday >= assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay {
-		u.reachedMaxAmountPerDay(s.BotLang)
+	if u.checkCompleteTodayWithPart(s.BotLang, s.Params.Partition) {
+		u.reachedMaxAmountPerDay(s.BotLang, s.Params.Partition)
 		return
 	}
 
@@ -66,20 +66,39 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 }
 
 func (u *User) resetWatchDayCounter(botLang string) {
-	u.CompletedToday = 0
+	u.CompletedT = 0
+	u.CompletedY = 0
+	u.CompletedA = 0
 
 	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query(updateCompleteTodayQuery, u.CompletedToday, u.ID)
+	rows, err := dataBase.Query(updateCompleteTodayQuery, u.CompletedT, u.CompletedY, u.CompletedA, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
 	rows.Close()
 }
 
+func (u *User) checkCompleteTodayWithPart(botLang, partition string) bool {
+	switch partition {
+	case "youtube":
+		return u.CompletedY >= assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayY
+	case "tiktok":
+		return u.CompletedT >= assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayT
+	case "advertisement":
+		return u.CompletedA >= assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayA
+	}
+	return true
+}
+
 func (u *User) sendMoneyStatistic(s bots.Situation) {
 	text := assets.LangText(u.Language, "make_money_statistic")
-	text = fmt.Sprintf(text, u.CompletedToday, assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay,
+	countVideoToday := assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayT +
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayY +
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayA
+
+	text = fmt.Sprintf(text, u.CompletedT+u.CompletedY+u.CompletedA, countVideoToday,
 		u.Balance, assets.AdminSettings.Parameters[s.BotLang].WatchReward)
+
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
 	msg.ParseMode = "HTML"
 
@@ -125,19 +144,44 @@ func transferMoney(s bots.Situation, breakTime int64) {
 	u := GetUser(s.BotLang, s.UserID)
 	u.Balance += assets.AdminSettings.Parameters[s.BotLang].WatchReward
 	u.Completed++
-	u.CompletedToday++
+	completeToday := u.IncreasePartCounter(s.Params.Partition)
 
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query(updateAfterTaskQuery, u.Balance, u.Completed, u.CompletedToday, u.ID)
+	rows, err := dataBase.Query(fmt.Sprintf(updateAfterTaskQuery, "completed_t"), u.Balance, u.Completed, completeToday, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
 	rows.Close()
 }
 
-func (u *User) reachedMaxAmountPerDay(botLang string) {
+func (u *User) IncreasePartCounter(partition string) int {
+	switch partition {
+	case "youtube":
+		u.CompletedY++
+		return u.CompletedY
+	case "tiktok":
+		u.CompletedT++
+		return u.CompletedT
+	case "advertisement":
+		u.CompletedA++
+		return u.CompletedA
+	}
+	return 0
+}
+
+func (u *User) reachedMaxAmountPerDay(botLang, partition string) {
 	text := assets.LangText(u.Language, "reached_max_amount_per_day")
-	text = fmt.Sprintf(text, assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDay, assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDay)
+	var maxPerDayInPart int
+	switch partition {
+	case "youtube":
+		maxPerDayInPart = assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayY
+	case "tiktok":
+		maxPerDayInPart = assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayT
+	case "advertisement":
+		maxPerDayInPart = assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayA
+	}
+
+	text = fmt.Sprintf(text, maxPerDayInPart, maxPerDayInPart)
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
 	msg.ReplyMarkup = msgs2.NewIlMarkUp(
 		msgs2.NewIlRow(msgs2.NewIlURLButton("advertisement_button_text", assets.AdminSettings.AdvertisingChan[u.Language].Url)),

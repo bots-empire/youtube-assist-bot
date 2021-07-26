@@ -27,7 +27,9 @@
       "MinWithdrawalAmount": 800,
       "WatchReward": 0,
       "SecondBetweenViews": 0,
-      "MaxOfVideoPerDay": 20,
+      "MaxOfVideoPerDayT": 20,
+      "MaxOfVideoPerDayY": 20,
+      "MaxOfVideoPerDayA": 20,
       "ReferralAmount": 30
     },
     "en": {
@@ -35,7 +37,9 @@
       "MinWithdrawalAmount": 300,
       "WatchReward": 0,
       "SecondBetweenViews": 0,
-      "MaxOfVideoPerDay": 0,
+      "MaxOfVideoPerDayT": 3,
+      "MaxOfVideoPerDayY": 2,
+      "MaxOfVideoPerDayA": 1,
       "ReferralAmount": 15
     },
     "es": {
@@ -43,7 +47,9 @@
       "MinWithdrawalAmount": 400,
       "WatchReward": 0,
       "SecondBetweenViews": 0,
-      "MaxOfVideoPerDay": 20,
+      "MaxOfVideoPerDayT": 20,
+      "MaxOfVideoPerDayY": 20,
+      "MaxOfVideoPerDayA": 20,
       "ReferralAmount": 15
     },
     "it": {
@@ -51,7 +57,9 @@
       "MinWithdrawalAmount": 600,
       "WatchReward": 5,
       "SecondBetweenViews": 30,
-      "MaxOfVideoPerDay": 20,
+      "MaxOfVideoPerDayT": 20,
+      "MaxOfVideoPerDayY": 20,
+      "MaxOfVideoPerDayA": 20,
       "ReferralAmount": 15
     },
     "mx": {
@@ -59,7 +67,9 @@
       "MinWithdrawalAmount": 800,
       "WatchReward": 0,
       "SecondBetweenViews": 0,
-      "MaxOfVideoPerDay": 20,
+      "MaxOfVideoPerDayT": 20,
+      "MaxOfVideoPerDayY": 20,
+      "MaxOfVideoPerDayA": 20,
       "ReferralAmount": 30
     }
   },
@@ -86,18 +96,18 @@
     }
   },
   "BlockedUsers": {
+    "br": 0,
     "es": 0,
     "it": 0,
-    "mx": 0,
-    "br": 0
+    "mx": 0
   },
   "LangSelectedMap": {
-    "br": true,
-    "de": true,
-    "en": true,
-    "es": true,
-    "it": true,
-    "mx": true
+    "br": false,
+    "de": false,
+    "en": false,
+    "es": false,
+    "it": false,
+    "mx": false
   },
   "AdvertisingText": {
     "br": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",

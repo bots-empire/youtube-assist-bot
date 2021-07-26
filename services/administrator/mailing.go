@@ -17,12 +17,7 @@ func NewStartMailingCommand() *StartMailingCommand {
 }
 
 func (c *StartMailingCommand) Serve(s bots.Situation) {
-	if !selectedLangAreNotEmpty() {
-		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "no_language_selected")
-		return
-	}
-
-	db.StartMailing(s.BotLang)
+	go db.StartMailing(s.BotLang)
 	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "mailing_successful")
 	resendAdvertisementMenuLevel(s.BotLang, s.CallbackQuery.From.ID)
 }
@@ -53,7 +48,7 @@ func (c *SelectedLangCommand) Serve(s bots.Situation) {
 func sendMailingMenu(botLang string, userID int) {
 	lang := assets.AdminLang(userID)
 
-	text := assets.AdminText(lang, "change_text_of_advertisement_text")
+	text := assets.AdminText(lang, "mailing_main_text")
 	markUp := createMailingMarkUp(lang)
 
 	if db.RdbGetAdminMsgID(botLang, userID) == 0 {
@@ -65,17 +60,10 @@ func sendMailingMenu(botLang string, userID int) {
 }
 
 func createMailingMarkUp(lang string) tgbotapi.InlineKeyboardMarkup {
-	markUp := parseMainLanguageButton()
-
-	text := "select_all_language"
-	data := "admin/send_advertisement?switch_all?select_all"
-	if selectedAllLanguage() {
-		text = "deselect_all_selections"
-		data = strings.Replace(data, "select_all", "deselect_all", 1)
-	}
+	markUp := &msgs2.InlineMarkUp{}
 
 	markUp.Rows = append(markUp.Rows,
-		msgs2.NewIlRow(msgs2.NewIlAdminButton(text, data)),
+		//msgs2.NewIlRow(msgs2.NewIlAdminButton(text, data)),
 		msgs2.NewIlRow(msgs2.NewIlAdminButton("start_mailing_button", "admin/start_mailing")),
 		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_advertisement_setting", "admin/advertisement")),
 	)

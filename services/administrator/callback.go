@@ -50,7 +50,7 @@ func (h *AdminCallbackHandlers) Init() {
 	h.OnCommand("/change_url_menu", NewChangeUrlMenuCommand())
 	h.OnCommand("/change_text_menu", NewChangeTextMenuCommand())
 	h.OnCommand("/mailing_menu", NewMailingMenuCommand())
-	h.OnCommand("/change_text_url", NewChangeTextUrlCommand())
+	//h.OnCommand("/change_text_url", NewChangeTextUrlCommand())
 	h.OnCommand("/send_advertisement", NewSelectedLangCommand())
 	h.OnCommand("/start_mailing", NewStartMailingCommand())
 
@@ -261,8 +261,10 @@ func (c *AdvertisementMenuCommand) Serve(s bots.Situation) {
 		msgs2.NewEditMarkUpMessage(s.BotLang, s.UserID, msgID, markUp, text)
 	}
 
-	if s.CallbackQuery.ID != "" {
-		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+	if s.CallbackQuery != nil {
+		if s.CallbackQuery.ID != "" {
+			msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+		}
 	}
 }
 
@@ -289,9 +291,16 @@ func NewChangeUrlMenuCommand() *ChangeUrlMenuCommand {
 }
 
 func (c *ChangeUrlMenuCommand) Serve(s bots.Situation) {
-	db.RdbSetUser(s.BotLang, s.CallbackQuery.From.ID, "admin/change_url")
-	sendChangeWithLangMenu(s.BotLang, s.CallbackQuery.From.ID, "change_url")
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+	//db.RdbSetUser(s.BotLang, s.UserID, "admin/change_url")
+	//sendChangeWithLangMenu(s.BotLang, s.UserID, "change_url")
+	//msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+
+	key := "set_new_url_text"
+	value := assets.AdminSettings.AdvertisingChan[s.BotLang].Url
+
+	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text_url?change_url")
+	promptForInput(s.BotLang, s.UserID, key, value)
+	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
 }
 
 type ChangeTextMenuCommand struct {
@@ -302,9 +311,16 @@ func NewChangeTextMenuCommand() *ChangeTextMenuCommand {
 }
 
 func (c *ChangeTextMenuCommand) Serve(s bots.Situation) {
-	db.RdbSetUser(s.BotLang, s.CallbackQuery.From.ID, "admin/change_text")
-	sendChangeWithLangMenu(s.BotLang, s.CallbackQuery.From.ID, "change_text")
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+	//db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text")
+	//sendChangeWithLangMenu(s.BotLang, s.UserID, "change_text")
+	//msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+
+	key := "set_new_advertisement_text"
+	value := assets.AdminSettings.AdvertisingText[s.BotLang]
+
+	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text_url?change_text")
+	promptForInput(s.BotLang, s.UserID, key, value)
+	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
 }
 
 type MailingMenuCommand struct {

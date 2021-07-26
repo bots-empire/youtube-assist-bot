@@ -16,6 +16,9 @@ const (
 	watchAmountName    = "watch_amount"
 	breakAmountName    = "break_amount"
 	watchPdAmountName  = "watch_pd_amount"
+	watchPdTAmountName = "watch_pd_t_amount"
+	watchPdYAmountName = "watch_pd_y_amount"
+	watchPdAAmountName = "watch_pd_a_amount"
 	referralAmountName = "referral_amount"
 )
 
@@ -105,6 +108,14 @@ func NewChangeParameterCommand() *ChangeParameterCommand {
 
 func (c *ChangeParameterCommand) Serve(s bots.Situation) {
 	changeParameter := strings.Split(s.CallbackQuery.Data, "?")[1]
+	if changeParameter == watchPdAmountName {
+		markUp, text := getChangeWatchPdAmountMenu(s.UserID)
+		db.RdbSetUser(s.BotLang, s.UserID, "admin")
+
+		sendMsgAdnAnswerCallback(s, markUp, text)
+		return
+	}
+
 	lang := assets.AdminLang(s.UserID)
 	var parameter string
 	var value int
@@ -123,9 +134,15 @@ func (c *ChangeParameterCommand) Serve(s bots.Situation) {
 	case breakAmountName:
 		parameter = assets.AdminText(lang, "change_break_watch_button")
 		value = int(assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)
-	case watchPdAmountName:
-		parameter = assets.AdminText(lang, "change_watch_pd_amount_button")
-		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDay
+	case watchPdTAmountName:
+		parameter = assets.AdminText(lang, "change_"+watchPdTAmountName+"_button")
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayT
+	case watchPdYAmountName:
+		parameter = assets.AdminText(lang, "change_"+watchPdYAmountName+"_button")
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayY
+	case watchPdAAmountName:
+		parameter = assets.AdminText(lang, "change_"+watchPdAAmountName+"_button")
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayA
 	case referralAmountName:
 		parameter = assets.AdminText(lang, "change_referral_amount_button")
 		value = assets.AdminSettings.Parameters[s.BotLang].ReferralAmount
@@ -139,6 +156,20 @@ func (c *ChangeParameterCommand) Serve(s bots.Situation) {
 	).Build(lang)
 
 	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+}
+
+func getChangeWatchPdAmountMenu(userID int) (*tgbotapi.InlineKeyboardMarkup, string) {
+	lang := assets.AdminLang(userID)
+	text := assets.AdminText(lang, "rewards_setting_setting_text")
+
+	markUp := msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("change_watch_pd_t_amount_button", "admin/change_parameter?"+watchPdTAmountName)),
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("change_watch_pd_y_amount_button", "admin/change_parameter?"+watchPdYAmountName)),
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("change_watch_pd_a_amount_button", "admin/change_parameter?"+watchPdAAmountName)),
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_make_money_setting", "admin/make_money_setting")),
+	).Build(lang)
+
+	return &markUp, text
 }
 
 type LinkSettingCommand struct {

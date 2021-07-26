@@ -33,7 +33,9 @@ type Params struct {
 	MinWithdrawalAmount int
 	WatchReward         int
 	SecondBetweenViews  int64
-	MaxOfVideoPerDay    int
+	MaxOfVideoPerDayT   int
+	MaxOfVideoPerDayY   int
+	MaxOfVideoPerDayA   int
 	ReferralAmount      int
 }
 
