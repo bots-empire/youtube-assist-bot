@@ -36,7 +36,7 @@
       "BonusAmount": 50,
       "MinWithdrawalAmount": 300,
       "WatchReward": 0,
-      "SecondBetweenViews": 0,
+      "SecondBetweenViews": 15,
       "MaxOfVideoPerDayT": 3,
       "MaxOfVideoPerDayY": 2,
       "MaxOfVideoPerDayA": 1,

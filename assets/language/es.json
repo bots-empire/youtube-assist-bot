@@ -14,8 +14,8 @@
   "back_to_make_money_button": "Make️ Hacer dinero \uD83E\uDD33",
   "back_to_main_menu_button": "⬅️ menu Principal",
 
-  "next_task_il_button" :" Siguiente tarea \uD83D\uDC40",
-  "make_money_statistic": "<b> Completed</b> ☑️ : %d of %d\n\n<b> Your balance</b> \uD83D\uDCB5: %d EUR.\n\nWatch this video for at least a minute to earn %dEUR.",
+  "next_task_il_button" : "Siguiente tarea \uD83D\uDC40",
+  "make_money_statistic": "<b>Completado</b> ☑️ : %d of %d\n\n<b>Su saldo</b> \uD83D\uDCB5: %d EUR.\n\nMira este video durante al menos un minuto para ganar %d EUR.",
   "invitation_to_watch_youtube": "Ver anuncio de YouTube: %s",
   "reached_max_amount_per_day": "✅ Ha completado %d/%d de los trabajos disponibles en esta sección\nNuevos videos llegarán en 24 horas\nHasta que no haya nuevos videos, puedes ganar EUR. adicionales en este canal ⬇️",
   "break_time_not_passed": "Todavía no has visto el vídeo anterior\uD83D\uDC46",

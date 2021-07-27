@@ -15,7 +15,7 @@
   "back_to_main_menu_button": "⬅️ Menu principale",
 
   "next_task_il_button": "Attività successiva \uD83D\uDC40",
-  "make_money_statistic": "<b>Completato</b>️️: %d of %d\n\n<b>Il tuo saldo</b> \uD83D\uDCB5: %d EUR\n\n Guarda questo video per almeno un minuto per guadagnare %d EUR",
+  "make_money_statistic": "<b>Completato</b>️️: %d of %d\n\n<b>Il tuo saldo</b> \uD83D\uDCB5: %d EUR\n\nGuarda questo video per almeno un minuto per guadagnare %d EUR",
   "invitation_to_watch_youtube": "Guarda l'annuncio di YouTube: %s",
   "reached_max_amount_per_day": "✅ Hai completato %d/%d delle attività disponibili in questa sezione\nNuovi video arriveranno tra 24 ore\nMentre non ci sono nuovi video, puoi guadagnare R$ extra in questo canale ⬇️",
   "break_time_not_passed": "Non hai ancora guardato il video precedente\uD83D\uDC46",
@@ -65,7 +65,7 @@
   "bonus_already_have": "Hai già un bonus",
   "bonus_have_received": "Hai ricevuto un bonus",
   "unfinished_action": "Completare l'azione corrente",
-  "user_msg_dont_recognize": "Messaggio non riconosciuto, scrivere / start per avviare le interazioni",
+  "user_msg_dont_recognize": "Messaggio non riconosciuto, scrivere /start per avviare le interazioni",
   "change_lang_button": "Cambia lingua \uD83C\uDDEC\uD83C\uDDE7",
   "lang_de": "Deutsch 🇩🇪",
   "lang_en": "English 🇬🇧",

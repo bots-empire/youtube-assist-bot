@@ -32,6 +32,8 @@ type GlobalBot struct {
 	BotToken      string
 	BotLink       string
 	LanguageInBot string
+
+	MaintenanceMode bool
 }
 
 type GlobalHandlers interface {

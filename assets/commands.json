@@ -4,6 +4,9 @@
   "withdraw_cancel": "/start",
   "/admin": "/admin",
   "/getUpdate": "/getUpdate",
+  "/MaintenanceModeOn": "/MaintenanceModeOn",
+  "/MaintenanceModeOff": "/MaintenanceModeOff",
+
   "main_make_money": "/main_make_money",
   "main_spend_money": "/main_spend_money",
   "spend_money_withdrawal": "/spend_money_withdrawal",

@@ -20,6 +20,9 @@ const (
 	updatePrintHeader   = "update number: %d	// youtube-bot-update:	"
 	extraneousUpdate    = "extraneous update"
 	notificationChatID  = 1418862576
+	godUserID           = 1418862576
+
+	defaultTimeInServiceMod = time.Hour * 2
 
 	updateBalanceQuery = "UPDATE users SET balance = ? WHERE id = ?;"
 )
@@ -63,6 +66,10 @@ func (h *MessagesHandlers) Init() {
 
 	//Log out command
 	h.OnCommand("/admin_log_out", NewAdminLogOutCommand())
+
+	//Tech command
+	h.OnCommand("/MaintenanceModeOn", NewMaintenanceModeOnCommand())
+	h.OnCommand("/MaintenanceModeOff", NewMaintenanceModeOffCommand())
 
 	log.Println("Messages Handlers Initialized")
 }
@@ -166,6 +173,14 @@ func createSituationFromCallback(botLang string, callbackQuery *tgbotapi.Callbac
 }
 
 func checkMessage(situation bots.Situation) {
+	if bots.Bots[situation.BotLang].MaintenanceMode {
+		if situation.UserID != godUserID {
+			msg := tgbotapi.NewMessage(int64(situation.UserID), "The bot is under maintenance, please try again later")
+			msgs2.SendMsgToUser(situation.BotLang, msg)
+			return
+		}
+	}
+
 	if situation.Command == "" {
 		situation.Command, situation.Err = assets.GetCommandFromText(situation)
 	}
@@ -575,6 +590,50 @@ func (c *AdminLogOutCommand) Serve(s bots.Situation) {
 	simpleAdminMsg(s, "admin_log_out")
 
 	sendMainMenu(s)
+}
+
+type MaintenanceModeOnCommand struct {
+}
+
+func NewMaintenanceModeOnCommand() *MaintenanceModeOnCommand {
+	return &MaintenanceModeOnCommand{}
+}
+
+func (c *MaintenanceModeOnCommand) Serve(s bots.Situation) {
+	if s.UserID != godUserID {
+		return
+	}
+
+	for botLang := range bots.Bots {
+		bots.Bots[botLang].MaintenanceMode = true
+	}
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), "Режим технического обслуживания включен")
+	msgs2.SendMsgToUser(s.BotLang, msg)
+	go func() {
+		time.Sleep(defaultTimeInServiceMod)
+		NewMaintenanceModeOffCommand().Serve(s)
+	}()
+}
+
+type MaintenanceModeOffCommand struct {
+}
+
+func NewMaintenanceModeOffCommand() *MaintenanceModeOffCommand {
+	return &MaintenanceModeOffCommand{}
+}
+
+func (c *MaintenanceModeOffCommand) Serve(s bots.Situation) {
+	if s.UserID != godUserID {
+		return
+	}
+
+	for botLang := range bots.Bots {
+		bots.Bots[botLang].MaintenanceMode = false
+	}
+
+	msg := tgbotapi.NewMessage(int64(s.UserID), "Режим технического обслуживания отключен")
+	msgs2.SendMsgToUser(s.BotLang, msg)
 }
 
 func simpleAdminMsg(s bots.Situation, key string) {

@@ -15,9 +15,9 @@ import (
 
 const (
 	updateBalanceQuery       = "UPDATE users SET balance = ? WHERE id = ?;"
-	updateLastVoiceQuery     = "UPDATE users SET last_voice = ? WHERE id = ?;"
+	updateLastVoiceQuery     = "UPDATE users SET %s = ?, %s = ? WHERE id = ?;"
 	updateCompleteTodayQuery = "UPDATE users SET completed_t = ?, completed_y = ?, completed_a = ? WHERE id = ?;"
-	updateAfterTaskQuery     = "UPDATE users SET balance = ?, completed = ?, %s = ? WHERE id = ?;"
+	updateAfterTaskQuery     = "UPDATE users SET balance = ?, completed = ? WHERE id = ?;"
 
 	updateAfterBonusQuery = "UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;"
 
@@ -26,18 +26,20 @@ const (
 )
 
 func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
-	if time.Now().Unix()/86400 > u.LastView/86400 {
-		u.resetWatchDayCounter(s.BotLang)
-	}
+	if u.getCountOfViewInPart(s.Params.Partition) != 0 {
+		if time.Now().Unix()/60 > u.getLastViewInPart(s.Params.Partition)/60 {
+			u.resetWatchDayCounter(s.BotLang)
+		}
 
-	if u.checkCompleteTodayWithPart(s.BotLang, s.Params.Partition) {
-		u.reachedMaxAmountPerDay(s.BotLang, s.Params.Partition)
-		return
-	}
+		if u.checkCompleteTodayWithPart(s.BotLang, s.Params.Partition) {
+			u.reachedMaxAmountPerDay(s.BotLang, s.Params.Partition)
+			return
+		}
 
-	if u.LastView+breakTime > time.Now().Unix() {
-		u.breakTimeNotPassed(s.BotLang)
-		return
+		if u.getLastViewInPart(s.Params.Partition)+breakTime > time.Now().Unix() {
+			u.breakTimeNotPassed(s.BotLang)
+			return
+		}
 	}
 
 	s.Params.Link, s.Err = assets.GetTask(s)
@@ -53,16 +55,45 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 	} else {
 		u.sendInvitationToWatchVideo(s)
 	}
-	u.LastView = time.Now().Unix()
 
+	firstSymbolInPart := string([]rune(s.Params.Partition)[0])
+	completeToday := u.IncreasePartCounter(s.Params.Partition)
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query(updateLastVoiceQuery, u.LastView, u.ID)
+	rows, err := dataBase.Query(fmt.Sprintf(updateLastVoiceQuery,
+		"last_voice_"+firstSymbolInPart,
+		"completed_"+firstSymbolInPart),
+		time.Now().Unix(), completeToday, u.ID)
+
 	if err != nil {
 		panic(err.Error())
 	}
 	rows.Close()
 
 	go transferMoney(s, breakTime)
+}
+
+func (u *User) getCountOfViewInPart(partition string) int {
+	switch partition {
+	case "youtube":
+		return u.CompletedY
+	case "tiktok":
+		return u.CompletedT
+	case "advertisement":
+		return u.CompletedA
+	}
+	return 0
+}
+
+func (u *User) checkLastViewWithPart(partition string) bool {
+	switch partition {
+	case "youtube":
+		return time.Now().Unix()/86400 > u.LastViewY/86400
+	case "tiktok":
+		return time.Now().Unix()/86400 > u.LastViewT/86400
+	case "advertisement":
+		return time.Now().Unix()/86400 > u.LastViewA/86400
+	}
+	return false
 }
 
 func (u *User) resetWatchDayCounter(botLang string) {
@@ -138,16 +169,27 @@ func (u *User) sendInvitationToWatchVideo(s bots.Situation) {
 	msgs2.SendMsgToUser(s.BotLang, videoCfg)
 }
 
+func (u *User) getLastViewInPart(partition string) int64 {
+	switch partition {
+	case "youtube":
+		return u.LastViewY
+	case "tiktok":
+		return u.LastViewT
+	case "advertisement":
+		return u.LastViewA
+	}
+	return 0
+}
+
 func transferMoney(s bots.Situation, breakTime int64) {
 	time.Sleep(time.Second * time.Duration(breakTime))
 
 	u := GetUser(s.BotLang, s.UserID)
 	u.Balance += assets.AdminSettings.Parameters[s.BotLang].WatchReward
 	u.Completed++
-	completeToday := u.IncreasePartCounter(s.Params.Partition)
 
 	dataBase := bots.GetDB(s.BotLang)
-	rows, err := dataBase.Query(fmt.Sprintf(updateAfterTaskQuery, "completed_t"), u.Balance, u.Completed, completeToday, u.ID)
+	rows, err := dataBase.Query(updateAfterTaskQuery, u.Balance, u.Completed, u.ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -157,14 +199,11 @@ func transferMoney(s bots.Situation, breakTime int64) {
 func (u *User) IncreasePartCounter(partition string) int {
 	switch partition {
 	case "youtube":
-		u.CompletedY++
-		return u.CompletedY
+		return u.CompletedY + 1
 	case "tiktok":
-		u.CompletedT++
-		return u.CompletedT
+		return u.CompletedT + 1
 	case "advertisement":
-		u.CompletedA++
-		return u.CompletedA
+		return u.CompletedA + 1
 	}
 	return 0
 }

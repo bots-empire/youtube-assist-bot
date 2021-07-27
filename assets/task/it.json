@@ -1,7 +1,23 @@
 {
   "Partition": {
     "advertisement": [],
-    "tiktok": [],
-    "youtube": []
+    "tiktok": [
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIIrWEAAXPZR0UNIto3RkDtbFp0c_m56AACcg8AAq-UCUgybvx_OTwYOiAE",
+        "Duration": 12,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ],
+    "youtube": [
+      {
+        "Url": "https://www.youtube.com/watch?v=LUKVnzddK9I",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ]
   }
 }
