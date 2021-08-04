@@ -27,7 +27,7 @@ const (
 
 func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 	if u.getCountOfViewInPart(s.Params.Partition) != 0 {
-		if time.Now().Unix()/60 > u.getLastViewInPart(s.Params.Partition)/60 {
+		if time.Now().Unix()/86400 > u.getLastViewInPart(s.Params.Partition)/86400 {
 			u.resetWatchDayCounter(s.BotLang)
 		}
 
@@ -123,12 +123,11 @@ func (u *User) checkCompleteTodayWithPart(botLang, partition string) bool {
 
 func (u *User) sendMoneyStatistic(s bots.Situation) {
 	text := assets.LangText(u.Language, "make_money_statistic")
-	countVideoToday := assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayT +
-		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayY +
-		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayA
+	countVideoToday := getMaxOfVideoPerDayWithPart(s.BotLang, s.Params.Partition)
 
-	text = fmt.Sprintf(text, u.CompletedT+u.CompletedY+u.CompletedA, countVideoToday,
-		u.Balance, assets.AdminSettings.Parameters[s.BotLang].WatchReward)
+	partKey := getPartKeyFromPart(s.Params.Partition)
+	text = fmt.Sprintf(text, assets.LangText(u.Language, partKey), u.getCompleteTodayInPart(s.Params.Partition),
+		countVideoToday, u.Balance, assets.AdminSettings.Parameters[s.BotLang].WatchReward)
 
 	msg := tgbotapi.NewMessage(int64(u.ID), text)
 	msg.ParseMode = "HTML"
@@ -138,6 +137,42 @@ func (u *User) sendMoneyStatistic(s bots.Situation) {
 	).Build(u.Language)
 
 	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+func getMaxOfVideoPerDayWithPart(botLang, partition string) int {
+	switch partition {
+	case "youtube":
+		return assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayY
+	case "tiktok":
+		return assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayT
+	case "advertisement":
+		return assets.AdminSettings.Parameters[botLang].MaxOfVideoPerDayA
+	}
+	return 0
+}
+
+func (u *User) getCompleteTodayInPart(partition string) int {
+	switch partition {
+	case "youtube":
+		return u.CompletedY
+	case "tiktok":
+		return u.CompletedT
+	case "advertisement":
+		return u.CompletedA
+	}
+	return 0
+}
+
+func getPartKeyFromPart(partition string) string {
+	switch partition {
+	case "youtube":
+		return "make_money_youtube"
+	case "tiktok":
+		return "make_money_tiktok"
+	case "advertisement":
+		return "make_money_advertisement"
+	}
+	return ""
 }
 
 func (u *User) sendInvitationToWatchLink(s bots.Situation) {

@@ -59,6 +59,7 @@ func (h *MessagesHandlers) Init() {
 	h.OnCommand("/paypal_method", NewPaypalReqCommand())
 	h.OnCommand("/credit_card_method", NewCreditCardReqCommand())
 	h.OnCommand("/withdrawal_method", NewWithdrawalMethodCommand())
+	h.OnCommand("/withdrawal_pix", NewWithdrawalMethodPixCommand())
 	h.OnCommand("/withdrawal_req_amount", NewReqWithdrawalAmountCommand())
 	h.OnCommand("/withdrawal_exit", NewWithdrawalAmountCommand())
 	//h.OnCommand("/promotion_choice", NewPromotionCommand())
@@ -344,6 +345,7 @@ func (c *SpendMoneyWithdrawalCommand) Serve(s bots.Situation) {
 
 	text := msgs2.GetFormatText(user.Language, "withdrawal_money", user.Balance)
 	markUp := msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("withdrawal_method_7")),
 		msgs2.NewRow(msgs2.NewDataButton("withdrawal_method_1"),
 			msgs2.NewDataButton("withdrawal_method_2")),
 		msgs2.NewRow(msgs2.NewDataButton("withdrawal_method_3"),
@@ -406,6 +408,25 @@ func (c *WithdrawalMethodCommand) Serve(s bots.Situation) {
 
 	lang := auth.GetLang(s.BotLang, s.UserID)
 	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "request_number_email"))
+	msg.ReplyMarkup = msgs2.NewMarkUp(
+		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
+	).Build(lang)
+
+	msgs2.SendMsgToUser(s.BotLang, msg)
+}
+
+type WithdrawalMethodPixCommand struct {
+}
+
+func NewWithdrawalMethodPixCommand() *WithdrawalMethodPixCommand {
+	return &WithdrawalMethodPixCommand{}
+}
+
+func (c *WithdrawalMethodPixCommand) Serve(s bots.Situation) {
+	db.RdbSetUser(s.BotLang, s.UserID, "/withdrawal_req_amount")
+
+	lang := auth.GetLang(s.BotLang, s.UserID)
+	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(lang, "request_pix_code"))
 	msg.ReplyMarkup = msgs2.NewMarkUp(
 		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
 	).Build(lang)
