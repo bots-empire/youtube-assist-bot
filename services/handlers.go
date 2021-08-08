@@ -111,17 +111,10 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 
 func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
 	if (time.Now().Unix()+6500)/86400 > int64(assets.UpdateStatistic.Day) {
-		text := fmt.Sprintf(updateCounterHeader, assets.UpdateStatistic.Counter)
-		msgID := msgs2.NewIDParseMessage(administrator.DefaultNotificationBot, 1418862576, text)
-		msgs2.SendMsgToUser(administrator.DefaultNotificationBot, tgbotapi.PinChatMessageConfig{
-			ChatID:    notificationChatID,
-			MessageID: msgID,
-		})
-		assets.UpdateStatistic.Counter = 0
-		assets.UpdateStatistic.Day = int(time.Now().Unix()+6500) / 86400
+		sendTodayUpdateMsg()
 	}
-	assets.UpdateStatistic.Counter++
-	assets.SaveUpdateStatistic()
+
+	assets.UpdateStatistic.IncreaseCounter()
 
 	fmt.Printf(updatePrintHeader, assets.UpdateStatistic.Counter)
 	if update.Message != nil {
@@ -137,6 +130,17 @@ func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
 	}
 
 	fmt.Println(botLang, extraneousUpdate)
+}
+
+func sendTodayUpdateMsg() {
+	text := fmt.Sprintf(updateCounterHeader, assets.UpdateStatistic.Counter)
+	msgID := msgs2.NewIDParseMessage(administrator.DefaultNotificationBot, 1418862576, text)
+	msgs2.SendMsgToUser(administrator.DefaultNotificationBot, tgbotapi.PinChatMessageConfig{
+		ChatID:    notificationChatID,
+		MessageID: msgID,
+	})
+	assets.UpdateStatistic.Counter = 0
+	assets.UpdateStatistic.Day = int(time.Now().Unix()) / 86400
 }
 
 //func PrintNewSituation(situation bots.Situation) {
