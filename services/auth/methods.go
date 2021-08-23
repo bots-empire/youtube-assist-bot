@@ -8,6 +8,7 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/db"
 	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -392,7 +393,9 @@ func addMemberToSubsBase(s bots.Situation) {
 	dataBase := bots.GetDB(s.BotLang)
 	rows, err := dataBase.Query(getSubsUserQuery, s.UserID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.393 //" + err.Error()
+		msgs2.NewParseMessage("it", 1418862576, text)
+		return
 	}
 
 	user := readUser(rows)
@@ -401,7 +404,10 @@ func addMemberToSubsBase(s bots.Situation) {
 	}
 	rows, err = dataBase.Query(updateSubsQuery, s.UserID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.405 //" + err.Error()
+		//msgs2.NewParseMessage("it", 1418862576, text)
+		log.Println(text)
+		return
 	}
 	rows.Close()
 }

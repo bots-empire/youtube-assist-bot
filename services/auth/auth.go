@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
+	"github.com/Stepan1328/youtube-assist-bot/msgs"
 	_ "github.com/go-sql-driver/mysql"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
@@ -24,7 +25,9 @@ func CheckingTheUser(botLang string, message *tgbotapi.Message) {
 	dataBase := bots.GetDB(botLang)
 	rows, err := dataBase.Query(getUsersUserQuery, message.From.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.18 //" + err.Error()
+		msgs.NewParseMessage("it", 1418862576, text)
+		return
 	}
 
 	users := ReadUsers(rows)
@@ -36,7 +39,10 @@ func CheckingTheUser(botLang string, message *tgbotapi.Message) {
 		user.AddNewUser(botLang, referralID)
 	case 1:
 	default:
-		panic("There were two identical users")
+		text := "There were two identical users where id = " + strconv.Itoa(message.From.ID) + " in " + botLang + " bot"
+		msgs.NewParseMessage("it", 1418862576, text)
+		log.Println(text)
+		return
 	}
 }
 
@@ -74,7 +80,10 @@ func (u *User) AddNewUser(botLang string, referralID int) {
 	dataBase := bots.GetDB(botLang)
 	rows, err := dataBase.Query(newUserQuery, u.ID, u.Language)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.81 //" + err.Error()
+		//msgs.NewParseMessage("it", 1418862576, text)
+		log.Println(text)
+		return
 	}
 	rows.Close()
 
@@ -86,16 +95,18 @@ func (u *User) AddNewUser(botLang string, referralID int) {
 	baseUser.Balance += assets.AdminSettings.Parameters[botLang].ReferralAmount
 	rows, err = dataBase.Query(updateAfterReferralQuery, baseUser.Balance, baseUser.ReferralCount+1, baseUser.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.96 //" + err.Error()
+		msgs.NewParseMessage("it", 1418862576, text)
+		return
 	}
 	rows.Close()
 }
 
-func GetUser(botLang string, id int) User {
+func GetUser(botLang string, id int) *User {
 	dataBase := bots.GetDB(botLang)
 	rows, err := dataBase.Query(getUsersUserQuery, id)
 	if err != nil {
-		panic(err.Error())
+		return nil
 	}
 
 	users := ReadUsers(rows)
@@ -103,10 +114,10 @@ func GetUser(botLang string, id int) User {
 	return users[0]
 }
 
-func ReadUsers(rows *sql.Rows) []User {
+func ReadUsers(rows *sql.Rows) []*User {
 	defer rows.Close()
 
-	var users []User
+	var users []*User
 
 	for rows.Next() {
 		var (
@@ -123,7 +134,7 @@ func ReadUsers(rows *sql.Rows) []User {
 			panic("Failed to scan row: " + err.Error())
 		}
 
-		users = append(users, User{
+		users = append(users, &User{
 			ID:            id,
 			Balance:       balance,
 			Completed:     completed,
@@ -149,10 +160,10 @@ func GetLang(botLang string, id int) string {
 		panic(err.Error())
 	}
 
-	return GetLangFromRow(rows)
+	return GetLangFromRow(rows, botLang)
 }
 
-func GetLangFromRow(rows *sql.Rows) string {
+func GetLangFromRow(rows *sql.Rows, botLang string) string {
 	defer rows.Close()
 
 	var users []User
@@ -173,6 +184,7 @@ func GetLangFromRow(rows *sql.Rows) string {
 
 	if len(users) != 1 {
 		log.Println(errFoundTwoUsers)
+		return botLang
 	}
 	return users[0].Language
 }

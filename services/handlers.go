@@ -81,7 +81,7 @@ func (h *MessagesHandlers) OnCommand(command string, handler bots.Handler) {
 
 func ActionsWithUpdates(botLang string, updates tgbotapi.UpdatesChannel) {
 	for update := range updates {
-		checkUpdate(botLang, &update)
+		go checkUpdate(botLang, &update)
 	}
 }
 
@@ -90,13 +90,21 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 		return
 	}
 
+	if update.Message != nil {
+		if update.Message.PinnedMessage != nil {
+			return
+		}
+	}
 	PrintNewUpdate(botLang, update)
 	if update.Message != nil {
 		auth.CheckingTheUser(botLang, update.Message)
-		situation := createSituationFromMsg(botLang, update.Message)
+		situation, err := createSituationFromMsg(botLang, update.Message)
+		if err != nil {
+			return
+		}
 
 		//PrintNewSituation(situation)
-		checkMessage(situation)
+		checkMessage(*situation)
 		return
 	}
 
@@ -110,7 +118,7 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 }
 
 func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
-	if (time.Now().Unix()+6500)/86400 > int64(assets.UpdateStatistic.Day) {
+	if (time.Now().Unix())/86400 > int64(assets.UpdateStatistic.Day) {
 		sendTodayUpdateMsg()
 	}
 
@@ -143,17 +151,12 @@ func sendTodayUpdateMsg() {
 	assets.UpdateStatistic.Day = int(time.Now().Unix()) / 86400
 }
 
-//func PrintNewSituation(situation bots.Situation) {
-//	bytes, err := json.MarshalIndent(situation, "", "   ")
-//	if err != nil {
-//		log.Println(err)
-//		return
-//	}
-//	log.Println("New update:\n", string(bytes), "\n")
-//}
+func createSituationFromMsg(botLang string, message *tgbotapi.Message) (*bots.Situation, error) {
+	if message.From == nil {
+		return nil, fmt.Errorf("empty message.from")
+	}
 
-func createSituationFromMsg(botLang string, message *tgbotapi.Message) bots.Situation {
-	return bots.Situation{
+	return &bots.Situation{
 		Message:  message,
 		BotLang:  botLang,
 		UserID:   message.From.ID,
@@ -161,7 +164,7 @@ func createSituationFromMsg(botLang string, message *tgbotapi.Message) bots.Situ
 		Params: bots.Parameters{
 			Level: db.GetLevel(botLang, message.From.ID),
 		},
-	}
+	}, nil
 }
 
 func createSituationFromCallback(botLang string, callbackQuery *tgbotapi.CallbackQuery) bots.Situation {

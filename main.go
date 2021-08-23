@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
 	"github.com/Stepan1328/youtube-assist-bot/services"
 	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -17,6 +18,7 @@ func main() {
 
 	startServices()
 	startAllBot()
+	assets.UploadUpdateStatistic()
 
 	startHandlers()
 }
@@ -41,7 +43,6 @@ func startServices() {
 	assets.ParseTasks()
 	assets.ParseAdminMap()
 	assets.UploadAdminSettings()
-	assets.UploadUpdateStatistic()
 	assets.ParseCommandsList()
 
 	log.Println("All services are running successfully")
@@ -78,6 +79,7 @@ func startHandlers() {
 	}
 
 	log.Println("All handlers are running")
+	msgs2.NewParseMessage("it", 1418862576, "All bots are restart")
 	wg.Wait()
 }
 
