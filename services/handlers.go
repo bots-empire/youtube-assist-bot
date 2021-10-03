@@ -100,10 +100,10 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 		auth.CheckingTheUser(botLang, update.Message)
 		situation, err := createSituationFromMsg(botLang, update.Message)
 		if err != nil {
+			log.Println(err)
 			return
 		}
 
-		//PrintNewSituation(situation)
 		checkMessage(*situation)
 		return
 	}
@@ -111,18 +111,21 @@ func checkUpdate(botLang string, update *tgbotapi.Update) {
 	if update.CallbackQuery != nil {
 		situation := createSituationFromCallback(botLang, update.CallbackQuery)
 
-		//PrintNewSituation(situation)
 		checkCallbackQuery(situation)
 		return
 	}
 }
 
 func PrintNewUpdate(botLang string, update *tgbotapi.Update) {
+	assets.UpdateStatistic.Mu.Lock()
+	defer assets.UpdateStatistic.Mu.Unlock()
+
 	if (time.Now().Unix())/86400 > int64(assets.UpdateStatistic.Day) {
 		sendTodayUpdateMsg()
 	}
 
-	assets.UpdateStatistic.IncreaseCounter()
+	assets.UpdateStatistic.Counter++
+	assets.SaveUpdateStatistic()
 
 	fmt.Printf(updatePrintHeader, assets.UpdateStatistic.Counter)
 	if update.Message != nil {
@@ -152,7 +155,12 @@ func sendTodayUpdateMsg() {
 }
 
 func createSituationFromMsg(botLang string, message *tgbotapi.Message) (*bots.Situation, error) {
+	if message == nil {
+		log.Println(botLang, message)
+		return nil, fmt.Errorf("empty message")
+	}
 	if message.From == nil {
+		log.Println(botLang, message)
 		return nil, fmt.Errorf("empty message.from")
 	}
 
@@ -287,7 +295,10 @@ func NewLinkTaskCommand() *LinkTaskCommand {
 }
 
 func (c *LinkTaskCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
 
 	s.Params.Partition = strings.Split(strings.Replace(s.Command, "/make_money_", "", 1), "?")[0]
 	user.MakeMoney(s, assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)
@@ -301,7 +312,10 @@ func NewVideoTaskCommand() *VideoTaskCommand {
 }
 
 func (c *VideoTaskCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
 
 	user.MakeMoney(s, getMakeMoneyDuration(&s))
 }
@@ -347,7 +361,11 @@ func NewSpendMoneyWithdrawalCommand() *SpendMoneyWithdrawalCommand {
 }
 
 func (c *SpendMoneyWithdrawalCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	db.RdbSetUser(s.BotLang, s.UserID, "withdrawal")
 
 	text := msgs2.GetFormatText(user.Language, "withdrawal_money", user.Balance)
@@ -465,7 +483,11 @@ func NewWithdrawalAmountCommand() *WithdrawalAmountCommand {
 }
 
 func (c *WithdrawalAmountCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	user.WithdrawMoneyFromBalance(s, s.Message.Text)
 }
 
@@ -477,7 +499,11 @@ func NewSendProfileCommand() *SendProfileCommand {
 }
 
 func (c *SendProfileCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 
 	text := msgs2.GetFormatText(user.Language, "profile_text",
@@ -515,7 +541,11 @@ func NewMoneyForAFriendCommand() *MoneyForAFriendCommand {
 }
 
 func (c *MoneyForAFriendCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 
 	text := msgs2.GetFormatText(user.Language, "referral_text", bots.GetGlobalBot(s.BotLang).BotLink,
@@ -579,7 +609,11 @@ func (c *PromotionCaseAnswerCommand) Serve(s bots.Situation) {
 		return
 	}
 
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	if user.Balance < cost {
 		smtWentWrong(s)
 

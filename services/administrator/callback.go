@@ -421,12 +421,13 @@ func NewStatisticCommand() *StatisticCommand {
 func (c *StatisticCommand) Serve(s bots.Situation) {
 	lang := assets.AdminLang(s.UserID)
 
-	count := countUsers(s.BotLang)
 	allCount := countAllUsers()
+	count := countUsers(s.BotLang)
+	referrals := countReferrals(s.BotLang, count)
 	blocked := countBlockedUsers(s.BotLang)
 	subscribers := countSubscribers(s.BotLang)
 	text := adminFormatText(lang, "statistic_text",
-		allCount, count, blocked, subscribers, count-blocked)
+		allCount, count, referrals, blocked, subscribers, count-blocked)
 
 	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
 	db.DeleteOldAdminMsg(s.BotLang, s.UserID)

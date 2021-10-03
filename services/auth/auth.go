@@ -2,6 +2,7 @@ package auth
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
 	"github.com/Stepan1328/youtube-assist-bot/msgs"
@@ -91,7 +92,11 @@ func (u *User) AddNewUser(botLang string, referralID int) {
 		return
 	}
 
-	baseUser := GetUser(botLang, referralID)
+	baseUser, err := GetUser(botLang, referralID)
+	if err != nil {
+		return
+	}
+
 	baseUser.Balance += assets.AdminSettings.Parameters[botLang].ReferralAmount
 	rows, err = dataBase.Query(updateAfterReferralQuery, baseUser.Balance, baseUser.ReferralCount+1, baseUser.ID)
 	if err != nil {
@@ -102,16 +107,19 @@ func (u *User) AddNewUser(botLang string, referralID int) {
 	rows.Close()
 }
 
-func GetUser(botLang string, id int) *User {
+func GetUser(botLang string, id int) (*User, error) {
 	dataBase := bots.GetDB(botLang)
 	rows, err := dataBase.Query(getUsersUserQuery, id)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	users := ReadUsers(rows)
+	if len(users) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
 
-	return users[0]
+	return users[0], nil
 }
 
 func ReadUsers(rows *sql.Rows) []*User {
@@ -157,7 +165,9 @@ func GetLang(botLang string, id int) string {
 	dataBase := bots.GetDB(botLang)
 	rows, err := dataBase.Query(getLangQuery, id)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.158 //" + err.Error()
+		msgs.NewParseMessage("it", 1418862576, text)
+		return "it"
 	}
 
 	return GetLangFromRow(rows, botLang)

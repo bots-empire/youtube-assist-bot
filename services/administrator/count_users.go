@@ -5,6 +5,7 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/bots"
 	"log"
+	"strconv"
 )
 
 const (
@@ -45,6 +46,18 @@ func countAllUsers() int {
 		sum += readRows(rows)
 	}
 	return sum
+}
+
+func countReferrals(botLang string, amountUsers int) string {
+	var refText string
+	rows, err := bots.Bots[botLang].DataBase.Query("SELECT SUM(referral_count) FROM users;")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	count := readRows(rows)
+	refText = strconv.Itoa(count) + " (" + strconv.Itoa(int(float32(count)*100.0/float32(amountUsers))) + "%)"
+	return refText
 }
 
 func countBlockedUsers(botLang string) int {

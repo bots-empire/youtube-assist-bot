@@ -66,7 +66,9 @@ func (u *User) MakeMoney(s bots.Situation, breakTime int64) {
 		time.Now().Unix(), completeToday, u.ID)
 
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.63 //" + err.Error()
+		msgs2.NewParseMessage("it", 1418862576, text)
+		return
 	}
 	rows.Close()
 
@@ -105,7 +107,9 @@ func (u *User) resetWatchDayCounter(botLang string) {
 	dataBase := bots.GetDB(botLang)
 	rows, err := dataBase.Query(updateCompleteTodayQuery, u.CompletedT, u.CompletedY, u.CompletedA, u.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.108 //" + err.Error()
+		msgs2.NewParseMessage("it", 1418862576, text)
+		return
 	}
 	rows.Close()
 }
@@ -220,14 +224,20 @@ func (u *User) getLastViewInPart(partition string) int64 {
 func transferMoney(s bots.Situation, breakTime int64) {
 	time.Sleep(time.Second * time.Duration(breakTime))
 
-	u := GetUser(s.BotLang, s.UserID)
+	u, err := GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	u.Balance += assets.AdminSettings.Parameters[s.BotLang].WatchReward
 	u.Completed++
 
 	dataBase := bots.GetDB(s.BotLang)
 	rows, err := dataBase.Query(updateAfterTaskQuery, u.Balance, u.Completed, u.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.232 //" + err.Error()
+		msgs2.NewParseMessage("it", 1418862576, text)
+		return
 	}
 	rows.Close()
 }
@@ -328,7 +338,9 @@ func (u *User) CheckSubscribeToWithdrawal(s bots.Situation, amount int) bool {
 	dataBase := bots.GetDB(s.BotLang)
 	rows, err := dataBase.Query(updateBalanceQuery, u.Balance, u.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.335 //" + err.Error()
+		msgs2.NewParseMessage("it", 1418862576, text)
+		return false
 	}
 	rows.Close()
 
@@ -354,7 +366,9 @@ func (u *User) GetABonus(s bots.Situation) {
 	dataBase := bots.GetDB(s.BotLang)
 	rows, err := dataBase.Query(updateAfterBonusQuery, u.Balance, true, u.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - methods.363 //" + err.Error()
+		msgs2.NewParseMessage("it", 1418862576, text)
+		return
 	}
 	rows.Close()
 

@@ -68,7 +68,10 @@ func NewGetBonusCommand() *GetBonusCommand {
 }
 
 func (c *GetBonusCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
 
 	user.GetABonus(s)
 }
@@ -161,7 +164,11 @@ func (c *RecheckSubscribeCommand) Serve(s bots.Situation) {
 		Text: amount,
 	}
 	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "invitation_to_subscribe")
-	u := auth.GetUser(s.BotLang, s.UserID)
+	u, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	amountInt, _ := strconv.Atoi(amount)
 
 	if u.CheckSubscribeToWithdrawal(s, amountInt) {
@@ -179,7 +186,11 @@ func NewPromotionCaseCommand() *PromotionCaseCommand {
 }
 
 func (c *PromotionCaseCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	cost, err := strconv.Atoi(strings.Split(s.CallbackQuery.Data, "?")[1])
 	if err != nil {
 		log.Println(err)
