@@ -1,12 +1,13 @@
 package administrator
 
 import (
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	"github.com/Stepan1328/youtube-assist-bot/db"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"strings"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/db"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type StartMailingCommand struct {
@@ -16,13 +17,8 @@ func NewStartMailingCommand() *StartMailingCommand {
 	return &StartMailingCommand{}
 }
 
-func (c *StartMailingCommand) Serve(s bots.Situation) {
-	if !selectedLangAreNotEmpty() {
-		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "no_language_selected")
-		return
-	}
-
-	db.StartMailing(s.BotLang)
+func (c *StartMailingCommand) Serve(s model.Situation) {
+	go db.StartMailing(s.BotLang)
 	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "mailing_successful")
 	resendAdvertisementMenuLevel(s.BotLang, s.CallbackQuery.From.ID)
 }
@@ -34,7 +30,7 @@ func NewSelectedLangCommand() *SelectedLangCommand {
 	return &SelectedLangCommand{}
 }
 
-func (c *SelectedLangCommand) Serve(s bots.Situation) {
+func (c *SelectedLangCommand) Serve(s model.Situation) {
 	data := strings.Split(s.CallbackQuery.Data, "?")
 	partition := data[1]
 	lang := data[2]
@@ -50,14 +46,14 @@ func (c *SelectedLangCommand) Serve(s bots.Situation) {
 	}
 }
 
-func sendMailingMenu(botLang string, userID int) {
+func sendMailingMenu(botLang string, userID int64) {
 	lang := assets.AdminLang(userID)
 
-	text := assets.AdminText(lang, "change_text_of_advertisement_text")
+	text := assets.AdminText(lang, "mailing_main_text")
 	markUp := createMailingMarkUp(lang)
 
 	if db.RdbGetAdminMsgID(botLang, userID) == 0 {
-		msgID := msgs2.NewIDParseMarkUpMessage(botLang, int64(userID), &markUp, text)
+		msgID, _ := msgs2.NewIDParseMarkUpMessage(botLang, userID, &markUp, text)
 		db.RdbSetAdminMsgID(botLang, userID, msgID)
 		return
 	}
@@ -65,17 +61,10 @@ func sendMailingMenu(botLang string, userID int) {
 }
 
 func createMailingMarkUp(lang string) tgbotapi.InlineKeyboardMarkup {
-	markUp := parseMainLanguageButton()
-
-	text := "select_all_language"
-	data := "admin/send_advertisement?switch_all?select_all"
-	if selectedAllLanguage() {
-		text = "deselect_all_selections"
-		data = strings.Replace(data, "select_all", "deselect_all", 1)
-	}
+	markUp := &msgs2.InlineMarkUp{}
 
 	markUp.Rows = append(markUp.Rows,
-		msgs2.NewIlRow(msgs2.NewIlAdminButton(text, data)),
+		//msgs2.NewIlRow(msgs2.NewIlAdminButton(text, data)),
 		msgs2.NewIlRow(msgs2.NewIlAdminButton("start_mailing_button", "admin/start_mailing")),
 		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_advertisement_setting", "admin/advertisement")),
 	)
@@ -104,12 +93,12 @@ func switchLangOnKeyboard(lang string) {
 	assets.SaveAdminSettings()
 }
 
-func resendAdvertisementMenuLevel(botLang string, userID int) {
+func resendAdvertisementMenuLevel(botLang string, userID int64) {
 	db.DeleteOldAdminMsg(botLang, userID)
 
 	db.RdbSetUser(botLang, userID, "admin/advertisement")
 	inlineMarkUp, text := getAdvertisementMenu(botLang, userID)
-	msgID := msgs2.NewIDParseMarkUpMessage(botLang, int64(userID), inlineMarkUp, text)
+	msgID, _ := msgs2.NewIDParseMarkUpMessage(botLang, userID, inlineMarkUp, text)
 	db.RdbSetAdminMsgID(botLang, userID, msgID)
 }
 

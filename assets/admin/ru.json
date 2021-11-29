@@ -60,6 +60,9 @@
   "change_watch_amount_button": "Доход за просмотр \uD83E\uDD33",
   "change_break_watch_button": "Перерыв между просмотрами ⏸",
   "change_watch_pd_amount_button": "Количество просмотров \uD83E\uDDEE",
+  "change_watch_pd_t_amount_button": "Количество просмотров TikTok\uD83E\uDDEE",
+  "change_watch_pd_y_amount_button": "Количество просмотров YouTube\uD83E\uDDEE",
+  "change_watch_pd_a_amount_button": "Количество просмотров Advert\uD83E\uDDEE",
   "change_referral_amount_button": "Реферальный доход \uD83D\uDCBC",
   "back_to_make_money_setting": "← Назад к ⚙️ Заработок",
   "operation_canceled": "Операция изменения отменена ❎",
@@ -85,6 +88,7 @@
   "button_off_pt": "Português \uD83C\uDDF5\uD83C\uDDF9",
   "set_new_advertisement_text": "<b>Текущий текст:</b>\n\n%s\n\nПришлите новый текст ⤵️",
   "distribute_button": "Рассылка \uD83D\uDCE3",
+  "mailing_main_text": "<b>Рассылка</b> \uD83D\uDCE3\n\nПодтвердите запуск рассылки",
   "select_all_language": "Отметить все языки",
   "deselect_all_selections": "Снять все выделения",
   "start_mailing_button": "Запустить рассылку \uD83D\uDCE3",
@@ -93,5 +97,5 @@
   "no_language_selected": "Выберите хотя бы один язык",
   "mailing_successful": "Реклама успешно отправлена",
 
-  "statistic_text": "<b>Статистика бота</b> \uD83D\uDCCA\n\n\uD83D\uDC65 Всего пользователей: %d\n\n\uD83D\uDC64 Пользователей в данном боте: %d\n❌ Неактивных пользователей: %d\n\uD83D\uDCF2 Подписавшихся на канал: %d\n✅ Активных пользователей: %d"
+  "statistic_text": "<b>Статистика бота</b> \uD83D\uDCCA\n\n\uD83D\uDC65 Всего пользователей: %d\n\n\uD83D\uDC64 Пользователей в данном боте: %d\n↗️ Количество рефералов: %s\n❌ Неактивных пользователей: %d\n\uD83D\uDCF2 Подписавшихся на канал: %d\n✅ Активных пользователей: %d"
 }

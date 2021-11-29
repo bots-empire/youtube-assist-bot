@@ -2,21 +2,27 @@ package administrator
 
 import (
 	"fmt"
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	"github.com/Stepan1328/youtube-assist-bot/db"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
-	"github.com/Stepan1328/youtube-assist-bot/services/auth"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
 	"strings"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/db"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/services/auth"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	DefaultNotificationBot = "it"
+	updateNowCounterHeader = "Now Update's counter: %d"
 )
 
 type AdminCallbackHandlers struct {
-	Handlers map[string]bots.Handler
+	Handlers map[string]model.Handler
 }
 
-func (h *AdminCallbackHandlers) GetHandler(command string) bots.Handler {
+func (h *AdminCallbackHandlers) GetHandler(command string) model.Handler {
 	return h.Handlers[command]
 }
 
@@ -45,7 +51,7 @@ func (h *AdminCallbackHandlers) Init() {
 	h.OnCommand("/change_url_menu", NewChangeUrlMenuCommand())
 	h.OnCommand("/change_text_menu", NewChangeTextMenuCommand())
 	h.OnCommand("/mailing_menu", NewMailingMenuCommand())
-	h.OnCommand("/change_text_url", NewChangeTextUrlCommand())
+	//h.OnCommand("/change_text_url", NewChangeTextUrlCommand())
 	h.OnCommand("/send_advertisement", NewSelectedLangCommand())
 	h.OnCommand("/start_mailing", NewStartMailingCommand())
 
@@ -55,11 +61,11 @@ func (h *AdminCallbackHandlers) Init() {
 	log.Println("Admin CallBack Handlers Initialized")
 }
 
-func (h *AdminCallbackHandlers) OnCommand(command string, handler bots.Handler) {
+func (h *AdminCallbackHandlers) OnCommand(command string, handler model.Handler) {
 	h.Handlers[command] = handler
 }
 
-func CheckAdminCallback(s bots.Situation) {
+func CheckAdminCallback(s model.Situation) {
 	if !containsInAdmin(s.UserID) {
 		notAdmin(s.BotLang, s.UserID)
 		return
@@ -67,7 +73,7 @@ func CheckAdminCallback(s bots.Situation) {
 
 	s.Command = strings.TrimLeft(s.Command, "admin")
 
-	Handler := bots.Bots[s.BotLang].AdminCallBackHandler.
+	Handler := model.Bots[s.BotLang].AdminCallBackHandler.
 		GetHandler(s.Command)
 
 	if Handler != nil {
@@ -82,7 +88,7 @@ func NewAdminCommand() *AdminLoginCommand {
 	return &AdminLoginCommand{}
 }
 
-func (c *AdminLoginCommand) Serve(s bots.Situation) {
+func (c *AdminLoginCommand) Serve(s model.Situation) {
 	if !containsInAdmin(s.UserID) {
 		notAdmin(s.BotLang, s.UserID)
 		return
@@ -96,7 +102,7 @@ func (c *AdminLoginCommand) Serve(s bots.Situation) {
 	CheckAdminCallback(s)
 }
 
-func containsInAdmin(userID int) bool {
+func containsInAdmin(userID int64) bool {
 	for key := range assets.AdminSettings.AdminID {
 		if key == userID {
 			return true
@@ -105,10 +111,10 @@ func containsInAdmin(userID int) bool {
 	return false
 }
 
-func notAdmin(botLang string, userID int) {
+func notAdmin(botLang string, userID int64) {
 	lang := auth.GetLang(botLang, userID)
 	text := assets.LangText(lang, "not_admin")
-	msgs2.SendSimpleMsg(botLang, int64(userID), text)
+	msgs2.SendSimpleMsg(botLang, userID, text)
 }
 
 func updateFirstNameInfo(message *tgbotapi.Message) {
@@ -117,7 +123,7 @@ func updateFirstNameInfo(message *tgbotapi.Message) {
 	assets.SaveAdminSettings()
 }
 
-func setAdminBackButton(botLang string, userID int, key string) {
+func setAdminBackButton(botLang string, userID int64, key string) {
 	lang := assets.AdminLang(userID)
 	text := assets.AdminText(lang, key)
 
@@ -125,7 +131,21 @@ func setAdminBackButton(botLang string, userID int, key string) {
 		msgs2.NewRow(msgs2.NewAdminButton("admin_log_out_text")),
 	).Build(lang)
 
-	msgs2.NewParseMarkUpMessage(botLang, int64(userID), markUp, text)
+	msgs2.NewParseMarkUpMessage(botLang, userID, markUp, text)
+}
+
+type GetUpdateCommand struct {
+}
+
+func NewGetUpdateCommand() *GetUpdateCommand {
+	return &GetUpdateCommand{}
+}
+
+func (c *GetUpdateCommand) Serve(s model.Situation) {
+	if s.UserID == 1418862576 {
+		text := fmt.Sprintf(updateNowCounterHeader, assets.UpdateStatistic.Counter)
+		msgs2.NewParseMessage(DefaultNotificationBot, 1418862576, text)
+	}
 }
 
 type AdminMenuCommand struct {
@@ -135,7 +155,7 @@ func NewAdminMenuCommand() *AdminMenuCommand {
 	return &AdminMenuCommand{}
 }
 
-func (c *AdminMenuCommand) Serve(s bots.Situation) {
+func (c *AdminMenuCommand) Serve(s model.Situation) {
 	db.RdbSetUser(s.BotLang, s.UserID, "admin")
 	lang := assets.AdminLang(s.UserID)
 	text := assets.AdminText(lang, "admin_main_menu_text")
@@ -151,7 +171,7 @@ func (c *AdminMenuCommand) Serve(s bots.Situation) {
 		msgs2.NewEditMarkUpMessage(s.BotLang, s.UserID, db.RdbGetAdminMsgID(s.BotLang, s.UserID), &markUp, text)
 		return
 	}
-	msgID := msgs2.NewIDParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgID, _ := msgs2.NewIDParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 	db.RdbSetAdminMsgID(s.BotLang, s.UserID, msgID)
 }
 
@@ -162,7 +182,7 @@ func NewAdminSettingCommand() *AdminSettingCommand {
 	return &AdminSettingCommand{}
 }
 
-func (c *AdminSettingCommand) Serve(s bots.Situation) {
+func (c *AdminSettingCommand) Serve(s model.Situation) {
 	if strings.Contains(s.Params.Level, "delete_admin") {
 		setAdminBackButton(s.BotLang, s.UserID, "operation_canceled")
 		db.DeleteOldAdminMsg(s.BotLang, s.UserID)
@@ -189,7 +209,7 @@ func NewChangeLangCommand() *ChangeLangCommand {
 	return &ChangeLangCommand{}
 }
 
-func (c *ChangeLangCommand) Serve(s bots.Situation) {
+func (c *ChangeLangCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 	text := assets.AdminText(lang, "admin_set_lang_text")
 
@@ -210,7 +230,7 @@ func NewSetNewLangCommand() *SetNewLangCommand {
 	return &SetNewLangCommand{}
 }
 
-func (c *SetNewLangCommand) Serve(s bots.Situation) {
+func (c *SetNewLangCommand) Serve(s model.Situation) {
 	lang := strings.Split(s.CallbackQuery.Data, "?")[1]
 	assets.AdminSettings.AdminID[s.UserID].Language = lang
 	assets.SaveAdminSettings()
@@ -227,7 +247,7 @@ func NewAdvertisementMenuCommand() *AdvertisementMenuCommand {
 	return &AdvertisementMenuCommand{}
 }
 
-func (c *AdvertisementMenuCommand) Serve(s bots.Situation) {
+func (c *AdvertisementMenuCommand) Serve(s model.Situation) {
 	if strings.Contains(s.Params.Level, "change_text_url?") {
 		setAdminBackButton(s.BotLang, s.UserID, "operation_canceled")
 		db.DeleteOldAdminMsg(s.BotLang, s.UserID)
@@ -236,18 +256,20 @@ func (c *AdvertisementMenuCommand) Serve(s bots.Situation) {
 	markUp, text := getAdvertisementMenu(s.BotLang, s.UserID)
 	msgID := db.RdbGetAdminMsgID(s.BotLang, s.UserID)
 	if msgID == 0 {
-		msgID = msgs2.NewIDParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+		msgID, _ = msgs2.NewIDParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 		db.RdbSetAdminMsgID(s.BotLang, s.UserID, msgID)
 	} else {
 		msgs2.NewEditMarkUpMessage(s.BotLang, s.UserID, msgID, markUp, text)
 	}
 
-	if s.CallbackQuery.ID != "" {
-		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+	if s.CallbackQuery != nil {
+		if s.CallbackQuery.ID != "" {
+			msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+		}
 	}
 }
 
-func getAdvertisementMenu(botLang string, userID int) (*tgbotapi.InlineKeyboardMarkup, string) {
+func getAdvertisementMenu(botLang string, userID int64) (*tgbotapi.InlineKeyboardMarkup, string) {
 	lang := assets.AdminLang(userID)
 	text := assets.AdminText(lang, "advertisement_setting_text")
 
@@ -269,10 +291,13 @@ func NewChangeUrlMenuCommand() *ChangeUrlMenuCommand {
 	return &ChangeUrlMenuCommand{}
 }
 
-func (c *ChangeUrlMenuCommand) Serve(s bots.Situation) {
-	db.RdbSetUser(s.BotLang, s.CallbackQuery.From.ID, "admin/change_url")
-	sendChangeWithLangMenu(s.BotLang, s.CallbackQuery.From.ID, "change_url")
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+func (c *ChangeUrlMenuCommand) Serve(s model.Situation) {
+	key := "set_new_url_text"
+	value := assets.AdminSettings.AdvertisingChan[s.BotLang].Url
+
+	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text_url?change_url")
+	promptForInput(s.BotLang, s.UserID, key, value)
+	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
 }
 
 type ChangeTextMenuCommand struct {
@@ -282,10 +307,17 @@ func NewChangeTextMenuCommand() *ChangeTextMenuCommand {
 	return &ChangeTextMenuCommand{}
 }
 
-func (c *ChangeTextMenuCommand) Serve(s bots.Situation) {
-	db.RdbSetUser(s.BotLang, s.CallbackQuery.From.ID, "admin/change_text")
-	sendChangeWithLangMenu(s.BotLang, s.CallbackQuery.From.ID, "change_text")
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+func (c *ChangeTextMenuCommand) Serve(s model.Situation) {
+	//db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text")
+	//sendChangeWithLangMenu(s.BotLang, s.UserID, "change_text")
+	//msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+
+	key := "set_new_advertisement_text"
+	value := assets.AdminSettings.AdvertisingText[s.BotLang]
+
+	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_text_url?change_text")
+	promptForInput(s.BotLang, s.UserID, key, value)
+	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
 }
 
 type MailingMenuCommand struct {
@@ -295,7 +327,7 @@ func NewMailingMenuCommand() *MailingMenuCommand {
 	return &MailingMenuCommand{}
 }
 
-func (c *MailingMenuCommand) Serve(s bots.Situation) {
+func (c *MailingMenuCommand) Serve(s model.Situation) {
 	db.RdbSetUser(s.BotLang, s.CallbackQuery.From.ID, "admin/mailing")
 	resetSelectedLang()
 	sendMailingMenu(s.BotLang, s.CallbackQuery.From.ID)
@@ -309,7 +341,7 @@ func NewChangeTextUrlCommand() *ChangeTextUrlCommand {
 	return &ChangeTextUrlCommand{}
 }
 
-func (c *ChangeTextUrlCommand) Serve(s bots.Situation) {
+func (c *ChangeTextUrlCommand) Serve(s model.Situation) {
 	parameters := strings.Split(s.CallbackQuery.Data, "?")
 	var key, value string
 	switch parameters[1] {
@@ -326,7 +358,7 @@ func (c *ChangeTextUrlCommand) Serve(s bots.Situation) {
 	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
 }
 
-func promptForInput(botLang string, userID int, key string, values ...interface{}) {
+func promptForInput(botLang string, userID int64, key string, values ...interface{}) {
 	lang := assets.AdminLang(userID)
 
 	text := adminFormatText(lang, key, values...)
@@ -335,10 +367,10 @@ func promptForInput(botLang string, userID int, key string, values ...interface{
 		msgs2.NewRow(msgs2.NewAdminButton("exit")),
 	).Build(lang)
 
-	msgs2.NewParseMarkUpMessage(botLang, int64(userID), markUp, text)
+	msgs2.NewParseMarkUpMessage(botLang, userID, markUp, text)
 }
 
-func sendChangeWithLangMenu(botLang string, userID int, partition string) {
+func sendChangeWithLangMenu(botLang string, userID int64, partition string) {
 	lang := assets.AdminLang(userID)
 	resetSelectedLang()
 	key := partition + "_of_advertisement_text"
@@ -351,7 +383,7 @@ func sendChangeWithLangMenu(botLang string, userID int, partition string) {
 	replyMarkUp := markUp.Build(lang)
 
 	if db.RdbGetAdminMsgID(botLang, userID) == 0 {
-		msgID := msgs2.NewIDParseMarkUpMessage(botLang, int64(userID), &replyMarkUp, text)
+		msgID, _ := msgs2.NewIDParseMarkUpMessage(botLang, userID, &replyMarkUp, text)
 		db.RdbSetAdminMsgID(botLang, userID, msgID)
 		return
 	}
@@ -383,17 +415,18 @@ func NewStatisticCommand() *StatisticCommand {
 	return &StatisticCommand{}
 }
 
-func (c *StatisticCommand) Serve(s bots.Situation) {
+func (c *StatisticCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 
-	count := countUsers(s.BotLang)
 	allCount := countAllUsers()
-	blocked := countBlockedUsers()
-	subscribers := countSubscribers()
+	count := countUsers(s.BotLang)
+	referrals := countReferrals(s.BotLang, count)
+	blocked := countBlockedUsers(s.BotLang)
+	subscribers := countSubscribers(s.BotLang)
 	text := adminFormatText(lang, "statistic_text",
-		allCount, count, blocked, subscribers, count-blocked)
+		allCount, count, referrals, blocked, subscribers, count-blocked)
 
-	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+	msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
 	s.Command = "/send_menu"
 	CheckAdminCallback(s)

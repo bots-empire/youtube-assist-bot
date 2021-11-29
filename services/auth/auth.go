@@ -2,20 +2,34 @@ package auth
 
 import (
 	"database/sql"
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	_ "github.com/go-sql-driver/mysql"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	"github.com/Stepan1328/youtube-assist-bot/msgs"
+	_ "github.com/go-sql-driver/mysql"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	getUsersUserQuery        = "SELECT * FROM users WHERE id = ?;"
+	newUserQuery             = "INSERT INTO users VALUES(?, 0, 0, 0, 0, 0, 0, 0, 0, 0, FALSE, ?);"
+	updateAfterReferralQuery = "UPDATE users SET balance = ?, referral_count = ? WHERE id = ?;"
+	getLangQuery             = "SELECT lang FROM users WHERE id = ?;"
+
+	errFoundTwoUsers = "The number if users fond is not equal to one"
 )
 
 func CheckingTheUser(botLang string, message *tgbotapi.Message) {
-	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query("SELECT * FROM users WHERE id = ?;", message.From.ID)
+	dataBase := model.GetDB(botLang)
+	rows, err := dataBase.Query(getUsersUserQuery, message.From.ID)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.18 //" + err.Error()
+		_ = msgs.NewParseMessage("it", 1418862576, text)
+		return
 	}
 
 	users := ReadUsers(rows)
@@ -27,17 +41,20 @@ func CheckingTheUser(botLang string, message *tgbotapi.Message) {
 		user.AddNewUser(botLang, referralID)
 	case 1:
 	default:
-		panic("There were two identical users")
+		text := "There were two identical users where id = " + strconv.FormatInt(message.From.ID, 10) + " in " + botLang + " bot"
+		_ = msgs.NewParseMessage("it", 1418862576, text)
+		log.Println(text)
+		return
 	}
 }
 
-func pullReferralID(message *tgbotapi.Message) int {
+func pullReferralID(message *tgbotapi.Message) int64 {
 	str := strings.Split(message.Text, " ")
 	if len(str) < 2 {
 		return 0
 	}
 
-	id, err := strconv.Atoi(str[1])
+	id, err := strconv.ParseInt(str[1], 10, 64)
 	if err != nil {
 		log.Println(err)
 		return 0
@@ -57,85 +74,98 @@ func createSimpleUser(botLang string, message *tgbotapi.Message) User {
 
 	return User{
 		ID:       message.From.ID,
-		Language: botLang,
+		Language: model.Bots[botLang].LanguageInBot,
 	}
 }
 
-func (u *User) AddNewUser(botLang string, referralID int) {
-	dataBase := bots.GetDB(botLang)
-	_, err := dataBase.Query("INSERT INTO users VALUES(?, 0, 0, 0, 0, 0, FALSE, ?);", u.ID, u.Language)
+func (u *User) AddNewUser(botLang string, referralID int64) {
+	dataBase := model.GetDB(botLang)
+	rows, err := dataBase.Query(newUserQuery, u.ID, u.Language)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.81 //" + err.Error()
+		//msgs.NewParseMessage("it", 1418862576, text)
+		log.Println(text)
+		return
 	}
+	rows.Close()
 
 	if referralID == u.ID || referralID == 0 {
 		return
 	}
 
-	baseUser := GetUser(botLang, referralID)
-	baseUser.Balance += assets.AdminSettings.ReferralAmount
-	_, err = dataBase.Query("UPDATE users SET balance = ?, referral_count = ? WHERE id = ?;",
-		baseUser.Balance, baseUser.ReferralCount+1, baseUser.ID)
+	baseUser, err := GetUser(botLang, referralID)
 	if err != nil {
-		panic(err.Error())
+		return
 	}
+
+	baseUser.Balance += assets.AdminSettings.Parameters[botLang].ReferralAmount
+	rows, err = dataBase.Query(updateAfterReferralQuery, baseUser.Balance, baseUser.ReferralCount+1, baseUser.ID)
+	if err != nil {
+		text := "Fatal Err with DB - auth.96 //" + err.Error()
+		_ = msgs.NewParseMessage("it", 1418862576, text)
+		return
+	}
+	rows.Close()
 }
 
-func GetUser(botLang string, id int) User {
-	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query("SELECT * FROM users WHERE id = ?;", id)
+func GetUser(botLang string, id int64) (*User, error) {
+	dataBase := model.GetDB(botLang)
+	rows, err := dataBase.Query(getUsersUserQuery, id)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	users := ReadUsers(rows)
+	if len(users) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
 
-	return users[0]
+	return users[0], nil
 }
 
-func ReadUsers(rows *sql.Rows) []User {
+func ReadUsers(rows *sql.Rows) []*User {
 	defer rows.Close()
 
-	var users []User
+	var users []*User
 
 	for rows.Next() {
-		var (
-			id, balance, completed, completedToday, referralCount int
-			lastVoice                                             int64
-			takeBonus                                             bool
-			lang                                                  string
-		)
+		user := User{}
 
-		if err := rows.Scan(&id, &balance, &completed, &completedToday, &lastVoice, &referralCount, &takeBonus, &lang); err != nil {
+		if err := rows.Scan(
+			&user.ID,
+			&user.Balance,
+			&user.Completed,
+			&user.CompletedT,
+			&user.CompletedY,
+			&user.CompletedA,
+			&user.LastViewT,
+			&user.LastViewY,
+			&user.LastViewA,
+			&user.ReferralCount,
+			&user.TakeBonus,
+			&user.Language); err != nil {
 			panic("Failed to scan row: " + err.Error())
 		}
 
-		users = append(users, User{
-			ID:             id,
-			Balance:        balance,
-			Completed:      completed,
-			CompletedToday: completedToday,
-			LastView:       lastVoice,
-			ReferralCount:  referralCount,
-			TakeBonus:      takeBonus,
-			Language:       lang,
-		})
+		users = append(users, &user)
 	}
 
 	return users
 }
 
-func GetLang(botLang string, id int) string {
-	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query("SELECT lang FROM users WHERE id = ?;", id)
+func GetLang(botLang string, id int64) string {
+	dataBase := model.GetDB(botLang)
+	rows, err := dataBase.Query(getLangQuery, id)
 	if err != nil {
-		panic(err.Error())
+		text := "Fatal Err with DB - auth.158 //" + err.Error()
+		_ = msgs.NewParseMessage("it", 1418862576, text)
+		return "it"
 	}
 
-	return GetLangFromRow(rows)
+	return GetLangFromRow(rows, botLang)
 }
 
-func GetLangFromRow(rows *sql.Rows) string {
+func GetLangFromRow(rows *sql.Rows, botLang string) string {
 	defer rows.Close()
 
 	var users []User
@@ -155,7 +185,8 @@ func GetLangFromRow(rows *sql.Rows) string {
 	}
 
 	if len(users) != 1 {
-		log.Println("The number if users fond is not equal to one")
+		log.Println(errFoundTwoUsers)
+		return botLang
 	}
 	return users[0].Language
 }

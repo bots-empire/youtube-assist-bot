@@ -2,14 +2,21 @@ package administrator
 
 import (
 	"database/sql"
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
 	"log"
+	"strconv"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+)
+
+const (
+	getUsersCountQuery    = "SELECT COUNT(*) FROM users;"
+	getDistinctUsersQuery = "SELECT COUNT(DISTINCT id) FROM subs;"
 )
 
 func countUsers(botLang string) int {
-	dataBase := bots.GetDB(botLang)
-	rows, err := dataBase.Query("SELECT COUNT(*) FROM users;")
+	dataBase := model.GetDB(botLang)
+	rows, err := dataBase.Query(getUsersCountQuery)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -32,8 +39,8 @@ func readRows(rows *sql.Rows) int {
 
 func countAllUsers() int {
 	var sum int
-	for _, handler := range bots.Bots {
-		rows, err := handler.DataBase.Query("SELECT COUNT(*) FROM users;")
+	for _, handler := range model.Bots {
+		rows, err := handler.DataBase.Query(getUsersCountQuery)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -42,22 +49,32 @@ func countAllUsers() int {
 	return sum
 }
 
-func countBlockedUsers() int {
-	var count int
-	for _, value := range assets.AdminSettings.BlockedUsers {
-		count += value
+func countReferrals(botLang string, amountUsers int) string {
+	var refText string
+	rows, err := model.Bots[botLang].DataBase.Query("SELECT SUM(referral_count) FROM users;")
+	if err != nil {
+		log.Println(err.Error())
 	}
-	return count
+
+	count := readRows(rows)
+	refText = strconv.Itoa(count) + " (" + strconv.Itoa(int(float32(count)*100.0/float32(amountUsers))) + "%)"
+	return refText
 }
 
-func countSubscribers() int {
-	var sum int
-	for _, handler := range bots.Bots {
-		rows, err := handler.DataBase.Query("SELECT COUNT(*) FROM subs;")
-		if err != nil {
-			log.Println(err.Error())
-		}
-		sum += readRows(rows)
+func countBlockedUsers(botLang string) int {
+	//var count int
+	//for _, value := range assets.AdminSettings.BlockedUsers {
+	//	count += value
+	//}
+	//return count
+	return assets.AdminSettings.BlockedUsers[botLang]
+}
+
+func countSubscribers(botLang string) int {
+	rows, err := model.Bots[botLang].DataBase.Query(getDistinctUsersQuery)
+	if err != nil {
+		log.Println(err.Error())
 	}
-	return sum
+
+	return readRows(rows)
 }

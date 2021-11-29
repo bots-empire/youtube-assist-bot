@@ -1,5 +1,5 @@
 .idea
-./services/admin
+assets/admin.json
+assets/statistic.json
 cfg/tokens.json
 cfg/db_config.go
-voice-assist-bot

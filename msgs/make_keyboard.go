@@ -2,7 +2,7 @@ package msgs
 
 import (
 	"github.com/Stepan1328/youtube-assist-bot/assets"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 /*

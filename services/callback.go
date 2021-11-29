@@ -1,23 +1,28 @@
 package services
 
 import (
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	"github.com/Stepan1328/youtube-assist-bot/db"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
-	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
-	"github.com/Stepan1328/youtube-assist-bot/services/auth"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/db"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
+	"github.com/Stepan1328/youtube-assist-bot/services/auth"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	updateLangQuery = "UPDATE users SET lang = ? WHERE id = ?;"
 )
 
 type CallBackHandlers struct {
-	Handlers map[string]bots.Handler
+	Handlers map[string]model.Handler
 }
 
-func (h *CallBackHandlers) GetHandler(command string) bots.Handler {
+func (h *CallBackHandlers) GetHandler(command string) model.Handler {
 	return h.Handlers[command]
 }
 
@@ -38,16 +43,16 @@ func (h *CallBackHandlers) Init() {
 	log.Println("CallBack Handlers Initialized")
 }
 
-func (h *CallBackHandlers) OnCommand(command string, handler bots.Handler) {
+func (h *CallBackHandlers) OnCommand(command string, handler model.Handler) {
 	h.Handlers[command] = handler
 }
 
-func checkCallbackQuery(s bots.Situation) {
+func checkCallbackQuery(s model.Situation) {
 	if strings.Contains(s.Params.Level, "admin") {
 		administrator.CheckAdminCallback(s)
 	}
 
-	Handler := bots.Bots[s.BotLang].CallbackHandler.
+	Handler := model.Bots[s.BotLang].CallbackHandler.
 		GetHandler(s.Command)
 
 	if Handler != nil {
@@ -63,8 +68,11 @@ func NewGetBonusCommand() *GetBonusCommand {
 	return &GetBonusCommand{}
 }
 
-func (c *GetBonusCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+func (c *GetBonusCommand) Serve(s model.Situation) {
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
 
 	user.GetABonus(s)
 }
@@ -76,7 +84,7 @@ func NewRepeatTaskCommand() *RepeatTaskCommand {
 	return &RepeatTaskCommand{}
 }
 
-func (c *RepeatTaskCommand) Serve(s bots.Situation) {
+func (c *RepeatTaskCommand) Serve(s model.Situation) {
 	s.Command = strings.Split(s.CallbackQuery.Data, "?")[0] + "?"
 
 	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "watch_previous_video")
@@ -90,7 +98,7 @@ func NewWithdrawalMainCommand() *WithdrawalMainCommand {
 	return &WithdrawalMainCommand{}
 }
 
-func (c *WithdrawalMainCommand) Serve(s bots.Situation) {
+func (c *WithdrawalMainCommand) Serve(s model.Situation) {
 	db.RdbSetUser(s.BotLang, s.UserID, "withdrawal")
 
 	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "select_payment"))
@@ -112,7 +120,7 @@ func NewChangeLanguageCommand() *ChangeLanguageCommand {
 	return &ChangeLanguageCommand{}
 }
 
-func (c *ChangeLanguageCommand) Serve(s bots.Situation) {
+func (c *ChangeLanguageCommand) Serve(s model.Situation) {
 	newLang := getNewLang(s)
 
 	setLanguage(s, newLang)
@@ -120,11 +128,11 @@ func (c *ChangeLanguageCommand) Serve(s bots.Situation) {
 	db.DeleteTemporaryMessages(s.BotLang, s.CallbackQuery.From.ID)
 }
 
-func getNewLang(s bots.Situation) string {
+func getNewLang(s model.Situation) string {
 	return strings.Split(s.CallbackQuery.Data, "?")[1]
 }
 
-func setLanguage(s bots.Situation, newLang string) {
+func setLanguage(s model.Situation, newLang string) {
 	db.RdbSetUser(s.BotLang, s.UserID, "main")
 
 	if newLang == "back" {
@@ -133,11 +141,12 @@ func setLanguage(s bots.Situation, newLang string) {
 		return
 	}
 
-	dataBase := bots.GetDB(s.BotLang)
-	_, err := dataBase.Query("UPDATE users SET lang = ? WHERE id = ?;", newLang, s.UserID)
+	dataBase := model.GetDB(s.BotLang)
+	rows, err := dataBase.Query(updateLangQuery, newLang, s.UserID)
 	if err != nil {
 		panic(err.Error())
 	}
+	rows.Close()
 
 	s.Command = "/start"
 	checkMessage(s)
@@ -150,13 +159,17 @@ func NewRecheckSubscribeCommand() *RecheckSubscribeCommand {
 	return &RecheckSubscribeCommand{}
 }
 
-func (c *RecheckSubscribeCommand) Serve(s bots.Situation) {
+func (c *RecheckSubscribeCommand) Serve(s model.Situation) {
 	amount := strings.Split(s.CallbackQuery.Data, "?")[1]
 	s.Message = &tgbotapi.Message{
 		Text: amount,
 	}
 	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "invitation_to_subscribe")
-	u := auth.GetUser(s.BotLang, s.UserID)
+	u, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	amountInt, _ := strconv.Atoi(amount)
 
 	if u.CheckSubscribeToWithdrawal(s, amountInt) {
@@ -173,8 +186,12 @@ func NewPromotionCaseCommand() *PromotionCaseCommand {
 	return &PromotionCaseCommand{}
 }
 
-func (c *PromotionCaseCommand) Serve(s bots.Situation) {
-	user := auth.GetUser(s.BotLang, s.UserID)
+func (c *PromotionCaseCommand) Serve(s model.Situation) {
+	user, err := auth.GetUser(s.BotLang, s.UserID)
+	if err != nil {
+		return
+	}
+
 	cost, err := strconv.Atoi(strings.Split(s.CallbackQuery.Data, "?")[1])
 	if err != nil {
 		log.Println(err)
@@ -203,7 +220,7 @@ func NewSendLanguageCommand() *SendLanguageCommand {
 	return &SendLanguageCommand{}
 }
 
-func (c *SendLanguageCommand) Serve(s bots.Situation) {
+func (c *SendLanguageCommand) Serve(s model.Situation) {
 	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "select_language"))
 
 	markUp := parseChangeLanguageButton()
@@ -212,7 +229,7 @@ func (c *SendLanguageCommand) Serve(s bots.Situation) {
 	)
 	msg.ReplyMarkup = markUp.Build(s.UserLang)
 
-	bot := bots.GetBot(s.BotLang)
+	bot := model.GetBot(s.BotLang)
 	data, err := bot.Send(msg)
 	if err != nil {
 		log.Println(err)

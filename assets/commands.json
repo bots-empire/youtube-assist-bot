@@ -3,6 +3,10 @@
   "/exit": "/start",
   "withdraw_cancel": "/start",
   "/admin": "/admin",
+  "/getUpdate": "/getUpdate",
+  "/MaintenanceModeOn": "/MaintenanceModeOn",
+  "/MaintenanceModeOff": "/MaintenanceModeOff",
+
   "main_make_money": "/main_make_money",
   "main_spend_money": "/main_spend_money",
   "spend_money_withdrawal": "/spend_money_withdrawal",
@@ -17,8 +21,13 @@
   "back_to_main_menu_button": "/start",
   "admin_log_out_text": "/admin_log_out",
   "back_to_make_money_button": "/main_make_money",
-  "paypal_method": "/paypal_method",
-  "credit_card_method": "/credit_card_method",
+  "withdrawal_method_1": "/withdrawal_method",
+  "withdrawal_method_2": "/withdrawal_method",
+  "withdrawal_method_3": "/withdrawal_method",
+  "withdrawal_method_4": "/withdrawal_method",
+  "withdrawal_method_5": "/withdrawal_method",
+  "withdrawal_method_6": "/withdrawal_method",
+  "withdrawal_method_7": "/withdrawal_pix",
 
   "back_to_advertisement_setting": "/advertisement_setting"
 }

@@ -2,94 +2,117 @@ package msgs
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"log"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	currency = "{{currency}}"
 )
 
 func SendMessageToChat(botLang string, msg tgbotapi.MessageConfig) bool {
-	if _, err := bots.Bots[botLang].Bot.Send(msg); err != nil {
+	if _, err := model.Bots[botLang].Bot.Send(msg); err != nil {
 		return false
 	}
 	return true
 }
 
-func NewParseMessage(botLang string, chatID int64, text string) {
+func NewParseMessage(botLang string, chatID int64, text string) error {
 	msg := tgbotapi.MessageConfig{
 		BaseChat: tgbotapi.BaseChat{
 			ChatID: chatID,
 		},
-		Text:      text,
+		Text:      insertCurrency(botLang, text),
 		ParseMode: "HTML",
 	}
 
-	SendMsgToUser(botLang, msg)
+	return SendMsgToUser(botLang, msg)
 }
 
-func NewParseMarkUpMessage(botLang string, chatID int64, markUp interface{}, text string) {
+func NewIDParseMessage(botLang string, chatID int64, text string) (int, error) {
+	msg := tgbotapi.MessageConfig{
+		BaseChat: tgbotapi.BaseChat{
+			ChatID: chatID,
+		},
+		Text:      insertCurrency(botLang, text),
+		ParseMode: "HTML",
+	}
+
+	message, err := model.Bots[botLang].Bot.Send(msg)
+	if err != nil {
+		return 0, nil
+	}
+	return message.MessageID, nil
+}
+
+func NewParseMarkUpMessage(botLang string, chatID int64, markUp interface{}, text string) error {
 	msg := tgbotapi.MessageConfig{
 		BaseChat: tgbotapi.BaseChat{
 			ChatID:      chatID,
 			ReplyMarkup: markUp,
 		},
-		Text:      text,
+		Text:      insertCurrency(botLang, text),
 		ParseMode: "HTML",
 	}
 
-	SendMsgToUser(botLang, msg)
+	return SendMsgToUser(botLang, msg)
 }
 
-func NewIDParseMarkUpMessage(botLang string, chatID int64, markUp interface{}, text string) int {
+func NewIDParseMarkUpMessage(botLang string, chatID int64, markUp interface{}, text string) (int, error) {
 	msg := tgbotapi.MessageConfig{
 		BaseChat: tgbotapi.BaseChat{
 			ChatID:      chatID,
 			ReplyMarkup: markUp,
 		},
-		Text:                  text,
+		Text:                  insertCurrency(botLang, text),
 		ParseMode:             "HTML",
 		DisableWebPagePreview: true,
 	}
 
-	message, err := bots.Bots[botLang].Bot.Send(msg)
+	message, err := model.Bots[botLang].Bot.Send(msg)
 	if err != nil {
-		log.Println(err)
+		return 0, err
 	}
-	return message.MessageID
+	return message.MessageID, nil
 }
 
-func NewEditMarkUpMessage(botLang string, userID, msgID int, markUp *tgbotapi.InlineKeyboardMarkup, text string) {
+func NewEditMarkUpMessage(botLang string, userID int64, msgID int, markUp *tgbotapi.InlineKeyboardMarkup, text string) error {
 	msg := tgbotapi.EditMessageTextConfig{
 		BaseEdit: tgbotapi.BaseEdit{
-			ChatID:      int64(userID),
+			ChatID:      userID,
 			MessageID:   msgID,
 			ReplyMarkup: markUp,
 		},
-		Text:                  text,
+		Text:                  insertCurrency(botLang, text),
 		ParseMode:             "HTML",
 		DisableWebPagePreview: true,
 	}
 
-	SendMsgToUser(botLang, msg)
+	return SendMsgToUser(botLang, msg)
 }
 
-func SendAnswerCallback(botLang string, callbackQuery *tgbotapi.CallbackQuery, lang, text string) {
+func SendAnswerCallback(botLang string, callbackQuery *tgbotapi.CallbackQuery, lang, text string) error {
 	answerCallback := tgbotapi.CallbackConfig{
 		CallbackQueryID: callbackQuery.ID,
 		Text:            assets.LangText(lang, text),
 	}
 
-	SendAnswerCallbackToUser(botLang, answerCallback)
+	_ = SendMsgToUser(botLang, answerCallback)
+	return nil
 }
 
-func SendAdminAnswerCallback(botLang string, callbackQuery *tgbotapi.CallbackQuery, text string) {
+func SendAdminAnswerCallback(botLang string, callbackQuery *tgbotapi.CallbackQuery, text string) error {
 	lang := assets.AdminLang(callbackQuery.From.ID)
 	answerCallback := tgbotapi.CallbackConfig{
 		CallbackQueryID: callbackQuery.ID,
 		Text:            assets.AdminText(lang, text),
 	}
 
-	SendAnswerCallbackToUser(botLang, answerCallback)
+	_ = SendMsgToUser(botLang, answerCallback)
+	return nil
 }
 
 func GetFormatText(lang, text string, values ...interface{}) string {
@@ -97,20 +120,19 @@ func GetFormatText(lang, text string, values ...interface{}) string {
 	return fmt.Sprintf(formatText, values...)
 }
 
-func SendSimpleMsg(botLang string, chatID int64, text string) {
-	msg := tgbotapi.NewMessage(chatID, text)
+func SendSimpleMsg(botLang string, chatID int64, text string) error {
+	msg := tgbotapi.NewMessage(chatID, insertCurrency(botLang, text))
 
-	SendMsgToUser(botLang, msg)
+	return SendMsgToUser(botLang, msg)
 }
 
-func SendMsgToUser(botLang string, msg tgbotapi.Chattable) {
-	if _, err := bots.Bots[botLang].Bot.Send(msg); err != nil {
-		log.Println(err)
+func SendMsgToUser(botLang string, msg tgbotapi.Chattable) error {
+	if _, err := model.Bots[botLang].Bot.Send(msg); err != nil {
+		return err
 	}
+	return nil
 }
 
-func SendAnswerCallbackToUser(botLang string, callback tgbotapi.CallbackConfig) {
-	if _, err := bots.Bots[botLang].Bot.AnswerCallbackQuery(callback); err != nil {
-		log.Println(err)
-	}
+func insertCurrency(botLang string, text string) string {
+	return strings.Replace(text, currency, assets.AdminSettings.Parameters[botLang].Currency, -1)
 }

@@ -2,10 +2,15 @@ package db
 
 import (
 	"database/sql"
+
 	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
+	"github.com/Stepan1328/youtube-assist-bot/model"
 	"github.com/Stepan1328/youtube-assist-bot/msgs"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	getLangIDQuery = "SELECT id, lang FROM users;"
 )
 
 var (
@@ -13,8 +18,8 @@ var (
 )
 
 func StartMailing(botLang string) {
-	dataBase := bots.Bots[botLang].DataBase
-	rows, err := dataBase.Query("SELECT id, lang FROM users;")
+	dataBase := model.Bots[botLang].DataBase
+	rows, err := dataBase.Query(getLangIDQuery)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -31,7 +36,7 @@ func MailToUser(botLang string, rows *sql.Rows) {
 
 	for rows.Next() {
 		var (
-			id   int
+			id   int64
 			lang string
 		)
 
@@ -40,7 +45,7 @@ func MailToUser(botLang string, rows *sql.Rows) {
 		}
 
 		msg := message[lang]
-		msg.ChatID = int64(id)
+		msg.ChatID = id
 
 		if containsInAdmin(id) {
 			continue
@@ -73,7 +78,7 @@ func clearSelectedLang(blockedUsers map[string]int) {
 	}
 }
 
-func containsInAdmin(userID int) bool {
+func containsInAdmin(userID int64) bool {
 	for key := range assets.AdminSettings.AdminID {
 		if key == userID {
 			return true

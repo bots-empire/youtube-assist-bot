@@ -1,13 +1,26 @@
 package administrator
 
 import (
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	"github.com/Stepan1328/youtube-assist-bot/db"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"strconv"
 	"strings"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/db"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	bonusAmountName    = "bonus_amount"
+	minWithdrawalName  = "min_withdrawal_amount"
+	watchAmountName    = "watch_amount"
+	breakAmountName    = "break_amount"
+	watchPdAmountName  = "watch_pd_amount"
+	watchPdTAmountName = "watch_pd_t_amount"
+	watchPdYAmountName = "watch_pd_y_amount"
+	watchPdAAmountName = "watch_pd_a_amount"
+	referralAmountName = "referral_amount"
 )
 
 type MakeMoneySettingCommand struct {
@@ -17,7 +30,7 @@ func NewMakeMoneySettingCommand() *MakeMoneySettingCommand {
 	return &MakeMoneySettingCommand{}
 }
 
-func (c *MakeMoneySettingCommand) Serve(s bots.Situation) {
+func (c *MakeMoneySettingCommand) Serve(s model.Situation) {
 	if strings.Contains(s.Params.Level, "change_parameter?") {
 		setAdminBackButton(s.BotLang, s.UserID, "operation_canceled")
 		db.DeleteOldAdminMsg(s.BotLang, s.UserID)
@@ -37,7 +50,7 @@ func (c *MakeMoneySettingCommand) Serve(s bots.Situation) {
 		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
 		return
 	}
-	msgID := msgs2.NewIDParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgID, _ := msgs2.NewIDParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 	db.RdbSetAdminMsgID(s.BotLang, s.UserID, msgID)
 }
 
@@ -48,14 +61,14 @@ func NewRewardsSettingCommand() *RewardsSettingCommand {
 	return &RewardsSettingCommand{}
 }
 
-func (c *RewardsSettingCommand) Serve(s bots.Situation) {
+func (c *RewardsSettingCommand) Serve(s model.Situation) {
 	markUp, text := getRewardsMenu(s.UserID)
 	db.RdbSetUser(s.BotLang, s.UserID, "admin")
 
 	sendMsgAdnAnswerCallback(s, markUp, text)
 }
 
-func getRewardsMenu(userID int) (*tgbotapi.InlineKeyboardMarkup, string) {
+func getRewardsMenu(userID int64) (*tgbotapi.InlineKeyboardMarkup, string) {
 	lang := assets.AdminLang(userID)
 	text := assets.AdminText(lang, "rewards_setting_setting_text")
 
@@ -72,12 +85,12 @@ func getRewardsMenu(userID int) (*tgbotapi.InlineKeyboardMarkup, string) {
 	return &markUp, text
 }
 
-func sendMsgAdnAnswerCallback(s bots.Situation, markUp *tgbotapi.InlineKeyboardMarkup, text string) {
+func sendMsgAdnAnswerCallback(s model.Situation, markUp *tgbotapi.InlineKeyboardMarkup, text string) {
 	if db.RdbGetAdminMsgID(s.BotLang, s.UserID) != 0 {
 		msgs2.NewEditMarkUpMessage(s.BotLang, s.UserID, db.RdbGetAdminMsgID(s.BotLang, s.UserID), markUp, text)
 		return
 	}
-	msgID := msgs2.NewIDParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgID, _ := msgs2.NewIDParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 	db.RdbSetAdminMsgID(s.BotLang, s.UserID, msgID)
 
 	if s.CallbackQuery != nil {
@@ -94,32 +107,46 @@ func NewChangeParameterCommand() *ChangeParameterCommand {
 	return &ChangeParameterCommand{}
 }
 
-func (c *ChangeParameterCommand) Serve(s bots.Situation) {
+func (c *ChangeParameterCommand) Serve(s model.Situation) {
 	changeParameter := strings.Split(s.CallbackQuery.Data, "?")[1]
+	if changeParameter == watchPdAmountName {
+		markUp, text := getChangeWatchPdAmountMenu(s.UserID)
+		db.RdbSetUser(s.BotLang, s.UserID, "admin")
+
+		sendMsgAdnAnswerCallback(s, markUp, text)
+		return
+	}
+
 	lang := assets.AdminLang(s.UserID)
 	var parameter string
 	var value int
 
 	db.RdbSetUser(s.BotLang, s.UserID, "admin/change_parameter?"+changeParameter)
 	switch changeParameter {
-	case "bonus_amount":
+	case bonusAmountName:
 		parameter = assets.AdminText(lang, "change_bonus_amount_button")
-		value = assets.AdminSettings.BonusAmount
-	case "min_withdrawal_amount":
+		value = assets.AdminSettings.Parameters[s.BotLang].BonusAmount
+	case minWithdrawalName:
 		parameter = assets.AdminText(lang, "change_min_withdrawal_amount_button")
-		value = assets.AdminSettings.MinWithdrawalAmount
-	case "watch_amount":
+		value = assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount
+	case watchAmountName:
 		parameter = assets.AdminText(lang, "change_watch_amount_button")
-		value = assets.AdminSettings.WatchReward
-	case "break_amount":
+		value = assets.AdminSettings.Parameters[s.BotLang].WatchReward
+	case breakAmountName:
 		parameter = assets.AdminText(lang, "change_break_watch_button")
-		value = int(assets.AdminSettings.SecondBetweenViews)
-	case "watch_pd_amount":
-		parameter = assets.AdminText(lang, "change_watch_pd_amount_button")
-		value = assets.AdminSettings.MaxOfVideoPerDay
-	case "referral_amount":
+		value = int(assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews)
+	case watchPdTAmountName:
+		parameter = assets.AdminText(lang, "change_"+watchPdTAmountName+"_button")
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayT
+	case watchPdYAmountName:
+		parameter = assets.AdminText(lang, "change_"+watchPdYAmountName+"_button")
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayY
+	case watchPdAAmountName:
+		parameter = assets.AdminText(lang, "change_"+watchPdAAmountName+"_button")
+		value = assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayA
+	case referralAmountName:
 		parameter = assets.AdminText(lang, "change_referral_amount_button")
-		value = assets.AdminSettings.ReferralAmount
+		value = assets.AdminSettings.Parameters[s.BotLang].ReferralAmount
 	}
 
 	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
@@ -129,7 +156,21 @@ func (c *ChangeParameterCommand) Serve(s bots.Situation) {
 		msgs2.NewRow(msgs2.NewAdminButton("admin_log_out_text")),
 	).Build(lang)
 
-	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgs2.NewParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
+}
+
+func getChangeWatchPdAmountMenu(userID int64) (*tgbotapi.InlineKeyboardMarkup, string) {
+	lang := assets.AdminLang(userID)
+	text := assets.AdminText(lang, "rewards_setting_setting_text")
+
+	markUp := msgs2.NewIlMarkUp(
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("change_watch_pd_t_amount_button", "admin/change_parameter?"+watchPdTAmountName)),
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("change_watch_pd_y_amount_button", "admin/change_parameter?"+watchPdYAmountName)),
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("change_watch_pd_a_amount_button", "admin/change_parameter?"+watchPdAAmountName)),
+		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_make_money_setting", "admin/make_money_setting")),
+	).Build(lang)
+
+	return &markUp, text
 }
 
 type LinkSettingCommand struct {
@@ -139,7 +180,7 @@ func NewLinkSettingCommand() *LinkSettingCommand {
 	return &LinkSettingCommand{}
 }
 
-func (c *LinkSettingCommand) Serve(s bots.Situation) {
+func (c *LinkSettingCommand) Serve(s model.Situation) {
 	if strings.Contains(s.Params.Level, "/") {
 		setAdminBackButton(s.BotLang, s.UserID, "operation_canceled")
 		db.DeleteOldAdminMsg(s.BotLang, s.UserID)
@@ -151,7 +192,7 @@ func (c *LinkSettingCommand) Serve(s bots.Situation) {
 	sendMsgAdnAnswerCallback(s, markUp, text)
 }
 
-func getLinksMenu(userID int) (*tgbotapi.InlineKeyboardMarkup, string) {
+func getLinksMenu(userID int64) (*tgbotapi.InlineKeyboardMarkup, string) {
 	lang := assets.AdminLang(userID)
 	text := assets.AdminText(lang, "links_menu_text")
 
@@ -172,7 +213,7 @@ func NewChangeLinkMenuCommand() *ChangeLinkMenuCommand {
 	return &ChangeLinkMenuCommand{}
 }
 
-func (c *ChangeLinkMenuCommand) Serve(s bots.Situation) {
+func (c *ChangeLinkMenuCommand) Serve(s model.Situation) {
 	var text, buttonType string
 	partition := strings.Split(s.CallbackQuery.Data, "?")[1]
 	lang := assets.AdminLang(s.UserID)
@@ -195,7 +236,7 @@ func (c *ChangeLinkMenuCommand) Serve(s bots.Situation) {
 	sendMsgAdnAnswerCallback(s, &markUp, text)
 }
 
-func createLinkListText(s bots.Situation, partition string) string {
+func createLinkListText(s model.Situation, partition string) string {
 	var text string
 	lang := assets.AdminLang(s.UserID)
 	text = assets.AdminText(lang, "link_list_head") + partition + "⬇️" + "\n\n"
@@ -216,7 +257,7 @@ func createLinkListText(s bots.Situation, partition string) string {
 	return text
 }
 
-func createVideoListText(s bots.Situation, partition string) string {
+func createVideoListText(s model.Situation, partition string) string {
 	var text string
 	lang := assets.AdminLang(s.UserID)
 	text = assets.AdminText(lang, "link_list_head") + partition + "⬇️" + "\n\n"
@@ -244,7 +285,7 @@ func NewAddLinkCommand() *AddLinkCommand {
 	return &AddLinkCommand{}
 }
 
-func (c *AddLinkCommand) Serve(s bots.Situation) {
+func (c *AddLinkCommand) Serve(s model.Situation) {
 	callBackText := "type_the_text"
 	key := "invitation_to_send_new_link"
 
@@ -264,7 +305,7 @@ func (c *AddLinkCommand) Serve(s bots.Situation) {
 		msgs2.NewRow(msgs2.NewAdminButton("admin_log_out_text")),
 	).Build(lang)
 
-	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgs2.NewParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 }
 
 type AddLimitToLinkCommand struct {
@@ -274,7 +315,7 @@ func NewAddLimitToLinkCommand() *AddLimitToLinkCommand {
 	return &AddLimitToLinkCommand{}
 }
 
-func (c *AddLimitToLinkCommand) Serve(s bots.Situation) {
+func (c *AddLimitToLinkCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 	db.RdbSetUser(s.BotLang, s.UserID, s.CallbackQuery.Data)
 
@@ -285,7 +326,7 @@ func (c *AddLimitToLinkCommand) Serve(s bots.Situation) {
 		msgs2.NewRow(msgs2.NewAdminButton("admin_log_out_text")),
 	).Build(lang)
 
-	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgs2.NewParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 }
 
 type DeleteLinkCommand struct {
@@ -295,7 +336,7 @@ func NewDeleteLinkCommand() *DeleteLinkCommand {
 	return &DeleteLinkCommand{}
 }
 
-func (c *DeleteLinkCommand) Serve(s bots.Situation) {
+func (c *DeleteLinkCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 	db.RdbSetUser(s.BotLang, s.UserID, s.CallbackQuery.Data)
 
@@ -306,5 +347,5 @@ func (c *DeleteLinkCommand) Serve(s bots.Situation) {
 		msgs2.NewRow(msgs2.NewAdminButton("admin_log_out_text")),
 	).Build(lang)
 
-	msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, text)
+	msgs2.NewParseMarkUpMessage(s.BotLang, s.UserID, markUp, text)
 }

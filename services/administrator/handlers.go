@@ -4,21 +4,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Stepan1328/youtube-assist-bot/assets"
-	"github.com/Stepan1328/youtube-assist-bot/bots"
-	"github.com/Stepan1328/youtube-assist-bot/db"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/db"
+	"github.com/Stepan1328/youtube-assist-bot/model"
+	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type AdminMessagesHandlers struct {
-	Handlers map[string]bots.Handler
+	Handlers map[string]model.Handler
 }
 
-func (h *AdminMessagesHandlers) GetHandler(command string) bots.Handler {
+func (h *AdminMessagesHandlers) GetHandler(command string) model.Handler {
 	return h.Handlers[command]
 }
 
@@ -40,7 +41,7 @@ func (h *AdminMessagesHandlers) Init() {
 	log.Println("Admin Message Handlers Initialized")
 }
 
-func (h *AdminMessagesHandlers) OnCommand(command string, handler bots.Handler) {
+func (h *AdminMessagesHandlers) OnCommand(command string, handler model.Handler) {
 	h.Handlers[command] = handler
 }
 
@@ -51,18 +52,18 @@ func NewRemoveAdminCommand() *RemoveAdminCommand {
 	return &RemoveAdminCommand{}
 }
 
-func (c *RemoveAdminCommand) Serve(s bots.Situation) {
+func (c *RemoveAdminCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
-	adminId, err := strconv.Atoi(s.Message.Text)
+	adminId, err := strconv.ParseInt(s.Message.Text, 10, 64)
 	if err != nil {
 		text := assets.AdminText(lang, "incorrect_admin_id_text")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
 	if !checkAdminIDInTheList(adminId) {
 		text := assets.AdminText(lang, "incorrect_admin_id_text")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
@@ -76,7 +77,7 @@ func (c *RemoveAdminCommand) Serve(s bots.Situation) {
 	CheckAdminCallback(s)
 }
 
-func checkAdminIDInTheList(adminID int) bool {
+func checkAdminIDInTheList(adminID int64) bool {
 	_, inMap := assets.AdminSettings.AdminID[adminID]
 	return inMap
 }
@@ -88,7 +89,7 @@ func NewAdvertisementSettingCommand() *AdvertisementSettingCommand {
 	return &AdvertisementSettingCommand{}
 }
 
-func (c *AdvertisementSettingCommand) Serve(s bots.Situation) {
+func (c *AdvertisementSettingCommand) Serve(s model.Situation) {
 	s.CallbackQuery = &tgbotapi.CallbackQuery{
 		Data: "admin/change_text_url?",
 	}
@@ -96,7 +97,7 @@ func (c *AdvertisementSettingCommand) Serve(s bots.Situation) {
 	CheckAdminCallback(s)
 }
 
-func CheckAdminMessage(s bots.Situation) bool {
+func CheckAdminMessage(s model.Situation) bool {
 	if !containsInAdmin(s.UserID) {
 		notAdmin(s.BotLang, s.UserID)
 		return true
@@ -104,7 +105,7 @@ func CheckAdminMessage(s bots.Situation) bool {
 
 	s.Command, s.Err = assets.GetCommandFromText(s)
 	if s.Err == nil {
-		Handler := bots.Bots[s.BotLang].AdminMessageHandler.
+		Handler := model.Bots[s.BotLang].AdminMessageHandler.
 			GetHandler(s.Command)
 
 		if Handler != nil {
@@ -115,7 +116,7 @@ func CheckAdminMessage(s bots.Situation) bool {
 
 	s.Command = strings.TrimLeft(strings.Split(s.Params.Level, "?")[0], "admin")
 
-	Handler := bots.Bots[s.BotLang].AdminMessageHandler.
+	Handler := model.Bots[s.BotLang].AdminMessageHandler.
 		GetHandler(s.Command)
 
 	if Handler != nil {
@@ -133,26 +134,50 @@ func NewSetNewTextUrlCommand() *SetNewTextUrlCommand {
 	return &SetNewTextUrlCommand{}
 }
 
-func (c *SetNewTextUrlCommand) Serve(s bots.Situation) {
-	data := strings.Split(s.Params.Level, "?")
-	textLang := data[2]
-	capitation := data[1]
+func (c *SetNewTextUrlCommand) Serve(s model.Situation) {
+	capitation := strings.Split(s.Params.Level, "?")[1]
+	lang := assets.AdminLang(s.UserID)
 	status := "operation_canceled"
 
 	switch capitation {
 	case "change_url":
-		assets.AdminSettings.AdvertisingChan[textLang].Url = s.Message.Text
-		status = "operation_completed"
+		advertChan := getUrlAndChatID(s.Message)
+		if advertChan.ChannelID == 0 {
+			text := assets.AdminText(lang, "chat_id_not_update")
+			msgs2.NewParseMessage(s.BotLang, s.UserID, text)
+			return
+		}
+
+		assets.AdminSettings.AdvertisingChan[s.BotLang] = advertChan
 	case "change_text":
-		assets.AdminSettings.AdvertisingText[textLang] = s.Message.Text
-		status = "operation_completed"
+		assets.AdminSettings.AdvertisingText[s.BotLang] = s.Message.Text
 	}
 	assets.SaveAdminSettings()
+	status = "operation_completed"
 
 	setAdminBackButton(s.BotLang, s.UserID, status)
-	db.RdbSetUser(s.BotLang, s.UserID, "admin/"+capitation)
+	db.RdbSetUser(s.BotLang, s.UserID, "admin")
 	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
-	sendChangeWithLangMenu(s.BotLang, s.UserID, capitation)
+	s.Command = "admin/advertisement"
+	s.Params.Level = "admin/change_url"
+	CheckAdminCallback(s)
+}
+
+func getUrlAndChatID(message *tgbotapi.Message) *assets.AdvertChannel {
+	data := strings.Split(message.Text, "\n")
+	if len(data) != 2 {
+		return &assets.AdvertChannel{}
+	}
+
+	chatId, err := strconv.Atoi(data[1])
+	if err != nil {
+		return &assets.AdvertChannel{}
+	}
+
+	return &assets.AdvertChannel{
+		Url:       data[0],
+		ChannelID: int64(chatId),
+	}
 }
 
 type UpdateParameterCommand struct {
@@ -162,31 +187,35 @@ func NewUpdateParameterCommand() *UpdateParameterCommand {
 	return &UpdateParameterCommand{}
 }
 
-func (c *UpdateParameterCommand) Serve(s bots.Situation) {
+func (c *UpdateParameterCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 
 	newAmount, err := strconv.Atoi(s.Message.Text)
 	if err != nil || newAmount <= 0 {
 		text := assets.AdminText(lang, "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
 
 	switch partition {
-	case "bonus_amount":
-		assets.AdminSettings.BonusAmount = newAmount
-	case "min_withdrawal_amount":
-		assets.AdminSettings.MinWithdrawalAmount = newAmount
-	case "watch_amount":
-		assets.AdminSettings.WatchReward = newAmount
-	case "break_amount":
-		assets.AdminSettings.SecondBetweenViews = int64(newAmount)
-	case "watch_pd_amount":
-		assets.AdminSettings.MaxOfVideoPerDay = newAmount
-	case "referral_amount":
-		assets.AdminSettings.ReferralAmount = newAmount
+	case bonusAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].BonusAmount = newAmount
+	case minWithdrawalName:
+		assets.AdminSettings.Parameters[s.BotLang].MinWithdrawalAmount = newAmount
+	case watchAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].WatchReward = newAmount
+	case breakAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].SecondBetweenViews = int64(newAmount)
+	case watchPdTAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayT = newAmount
+	case watchPdYAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayY = newAmount
+	case watchPdAAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].MaxOfVideoPerDayA = newAmount
+	case referralAmountName:
+		assets.AdminSettings.Parameters[s.BotLang].ReferralAmount = newAmount
 	}
 	assets.SaveAdminSettings()
 	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")
@@ -203,7 +232,7 @@ func NewAddLinkToListCommand() *AddLinkToListCommand {
 	return &AddLinkToListCommand{}
 }
 
-func (c *AddLinkToListCommand) Serve(s bots.Situation) {
+func (c *AddLinkToListCommand) Serve(s model.Situation) {
 	if s.Message.Text == assets.AdminText(assets.AdminLang(s.UserID), "back_to_link_list_menu") {
 		s.Command = "admin/link_setting"
 		CheckAdminCallback(s)
@@ -230,7 +259,7 @@ func (c *AddLinkToListCommand) Serve(s bots.Situation) {
 
 		lang := assets.AdminLang(s.UserID)
 		text := assets.AdminText(lang, "incorrect_new_video")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
@@ -241,7 +270,7 @@ func (c *AddLinkToListCommand) Serve(s bots.Situation) {
 	updateTasks(s, partition)
 }
 
-func updateTasks(s bots.Situation, partition string) {
+func updateTasks(s model.Situation, partition string) {
 	assets.SaveTasks(s.BotLang)
 	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")
 	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
@@ -258,7 +287,7 @@ func NewSetLimitToLinkCommand() *SetLimitToLinkCommand {
 	return &SetLimitToLinkCommand{}
 }
 
-func (c *SetLimitToLinkCommand) Serve(s bots.Situation) {
+func (c *SetLimitToLinkCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 	if s.Message.Text == assets.AdminText(lang, "back_to_link_list_menu") {
 		s.Command = "admin/link_setting"
@@ -270,20 +299,20 @@ func (c *SetLimitToLinkCommand) Serve(s bots.Situation) {
 	linkNumber, err := strconv.Atoi(s.Message.Text)
 	if err != nil {
 		text := assets.AdminText(lang, "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
 	if len(assets.Tasks[s.BotLang].Partition[partition]) < linkNumber {
 		text := assets.AdminText(assets.AdminLang(s.UserID), "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
 	db.RdbSetUser(s.BotLang, s.UserID, "admin/set_limit_to_link?"+partition+"?"+strconv.Itoa(linkNumber))
 	text := adminFormatText(lang, "invitation_to_send_limit",
 		assets.Tasks[s.BotLang].Partition[partition][linkNumber-1].Url)
-	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+	msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 }
 
 type UpdateLimitToLinkCommand struct {
@@ -293,7 +322,7 @@ func NewUpdateLimitToLinkCommand() *UpdateLimitToLinkCommand {
 	return &UpdateLimitToLinkCommand{}
 }
 
-func (c *UpdateLimitToLinkCommand) Serve(s bots.Situation) {
+func (c *UpdateLimitToLinkCommand) Serve(s model.Situation) {
 	lang := assets.AdminLang(s.UserID)
 	if s.Message.Text == assets.AdminText(lang, "back_to_link_list_menu") {
 		s.Command = "admin/link_setting"
@@ -306,7 +335,7 @@ func (c *UpdateLimitToLinkCommand) Serve(s bots.Situation) {
 	newImpression, err := strconv.Atoi(s.Message.Text)
 	if err != nil || newImpression < 1 {
 		text := assets.AdminText(lang, "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
@@ -334,7 +363,7 @@ func NewDeleteLinkFromListCommand() *DeleteLinkFromListCommand {
 	return &DeleteLinkFromListCommand{}
 }
 
-func (c *DeleteLinkFromListCommand) Serve(s bots.Situation) {
+func (c *DeleteLinkFromListCommand) Serve(s model.Situation) {
 	if s.Message.Text == assets.AdminText(assets.AdminLang(s.UserID), "back_to_link_list_menu") {
 		s.Command = "admin/link_setting"
 		CheckAdminCallback(s)
@@ -345,14 +374,14 @@ func (c *DeleteLinkFromListCommand) Serve(s bots.Situation) {
 	linkNumber, err := strconv.Atoi(s.Message.Text)
 	if err != nil {
 		text := assets.AdminText(assets.AdminLang(s.UserID), "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
 	err = deleteLinkFromList(s, partition, linkNumber-1)
 	if err != nil {
 		text := assets.AdminText(assets.AdminLang(s.UserID), "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
 		return
 	}
 
@@ -365,7 +394,7 @@ func (c *DeleteLinkFromListCommand) Serve(s bots.Situation) {
 	CheckAdminCallback(s)
 }
 
-func deleteLinkFromList(s bots.Situation, partition string, linkNumber int) error {
+func deleteLinkFromList(s model.Situation, partition string, linkNumber int) error {
 	listLength := len(assets.Tasks[s.BotLang].Partition[partition])
 	if linkNumber > listLength || linkNumber < 0 || listLength == 0 {
 		return errors.New("index out of range")

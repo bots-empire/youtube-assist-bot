@@ -1,0 +1,444 @@
+{
+  "Partition": {
+    "advertisement": [
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIDDmD8acXGXOWNJWHJj7pWqbUH-pT7AALLDgAC6Z7pS3y8HrK-HOzVIAQ",
+        "Duration": 75,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIDEmD8bM0wSjj9v1tc2rC8JMM6RbiEAALWDgAC6Z7pSx3OkpvAM8b4IAQ",
+        "Duration": 45,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIDFmD8bOVX5Uxhh0YfWrVAVWvLVySjAALYDgAC6Z7pS7SS0Fk-r2J8IAQ",
+        "Duration": 20,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ],
+    "tiktok": [
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIBw2D4S3wAATvCI5jTgeB_Cl4AAWuxA6QAAtYPAAL6mMhLo0CQWHaI6KUgBA",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIBxmD4S4CXh2951cfX-iY42Z4KGaD7AALXDwAC-pjIS2VJjLNGafVFIAQ",
+        "Duration": 22,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIByWD4S4uvdOY7v0uKZ6l4Wqxd0k4ZAALYDwAC-pjISyQ9ZAe_P4hiIAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIBzGD4S6u28TKdEII8AAGr2vVrrZ9TogAC2Q8AAvqYyEvfnd0-6c-pOiAE",
+        "Duration": 45,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIBz2D4S7UoSqC8TIZW4EDk9HVxYcTTAALaDwAC-pjIS12QLm1y3tZ5IAQ",
+        "Duration": 13,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB0mD4S7zef8q-R94CUxSxk4Yo7y3jAALcDwAC-pjIS1IGM-rAHWX_IAQ",
+        "Duration": 9,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB1WD4S8ChPRz2xgAB-nGS5WOcUN0WNAAC3Q8AAvqYyEs2X_YaLfxVJCAE",
+        "Duration": 12,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB2GD4S9OXJEI696lvbBicRCsbAiDsAALeDwAC-pjIS5Srdl0iVcmLIAQ",
+        "Duration": 19,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB22D4S9ZvRpPILGSg1ZRA28F0LDvuAALfDwAC-pjIS4SYN85DE2rdIAQ",
+        "Duration": 9,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB3mD4S9z-3-CBg-WBTc8UFE3lFGXIAALgDwAC-pjISxuEulR80vc6IAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB4WD4S-p8IeOW1auHh04QVswg5d_pAALiDwAC-pjIS7kmv5pdM7e9IAQ",
+        "Duration": 13,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB5GD4S_V5UjLce7RhvYvHCRV7tvGkAALjDwAC-pjIS_tERtpClQOaIAQ",
+        "Duration": 19,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB52D4S_-jSNO19YrRfpkweCCJSMM5AALkDwAC-pjIS4Er2yhjJWUkIAQ",
+        "Duration": 13,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB6mD4TBm4CKUzaZTNN03rdi70rMWBAALlDwAC-pjIS--7a8hnUWQNIAQ",
+        "Duration": 54,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB7WD4TBwMbqJy7DEgf1aDl4Zs3kLYAALmDwAC-pjIS1A0CA_L4gmHIAQ",
+        "Duration": 8,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB8GD4TCL7DUMb5E6FRdS-RlkcqlVZAALnDwAC-pjIS68k6tmtF1FcIAQ",
+        "Duration": 12,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB82D4TDjeKM3Od2AioClaTOkC542YAALpDwAC-pjIS_mU90ozJY1vIAQ",
+        "Duration": 26,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB9mD4TDm-iChDMn8PJRgiuz_EynOfAALqDwAC-pjIS81duPLcuPosIAQ",
+        "Duration": 13,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB-WD4TD38hUlLop7IeAQAAaVIouWGrAAC6w8AAvqYyEtcCV6Hn3cJjCAE",
+        "Duration": 8,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAIB_GD4TENJMMOdwixL-8ZfBk-JeZCRAALsDwAC-pjIS31B31wLZAkFIAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICAAFg-FCFg2NJ7Rh_Lv_uLePUj10aMgAC_Q8AAvqYyEtqgjRz7BSc9yAE",
+        "Duration": 10,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICA2D4UIxOTscx6OZIufZrBTBC_IhMAAL-DwAC-pjISxcttnKhgANGIAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICBmD4UJKnrfGIBwKpB6Xm2ZWTDdmfAAL_DwAC-pjIS0vzN86D9J2hIAQ",
+        "Duration": 14,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICCWD4UJifjZKo3u8TH0n6FDOZV-tvAAMQAAL6mMhLH-sew6BCLq8gBA",
+        "Duration": 14,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICDGD4UJ63D7SKSWJ1rIskqxtU6siFAAIBEAAC-pjISyFH6Vh1CPzrIAQ",
+        "Duration": 11,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICD2D4UKSDVSdw8ybPqKMCoivM3klGAAICEAAC-pjIS4B8wPqnAa6PIAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICEmD4UKelxeEShVD1c2ReZ_ciAWU5AAIDEAAC-pjIS9HzGqwAASn-kCAE",
+        "Duration": 7,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICFWD4UK0D3LY7_Uox9gKN7xSXpt8FAAIEEAAC-pjIS4jQgfuqgd4wIAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICGGD4UL3yFzes3khQ_KNkmHtDO9M_AAIFEAAC-pjIS_prgPo9URpbIAQ",
+        "Duration": 15,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "",
+        "FileID": "BAACAgIAAxkBAAICG2D4UO4mL727USHrFdiicVmFrloNAAIGEAAC-pjISy6NyBo1_QQHIAQ",
+        "Duration": 33,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ],
+    "youtube": [
+      {
+        "Url": "https://www.youtube.com/watch?v=mEKqfConDeM",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=wqRU3t17Cg4",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=8kdlj7QVvZE",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=YCHmuTv3Qto",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=fKEF04WrrYM",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=ECZ7p_YyRao",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=e9o6QNrtxm0",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=xdjI8HjI9ss",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=BZ4xGbJDV_o",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=H-GMBtrUL-g",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=EZt4adLr08Q",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=sICFDenlEmE",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=jOGs5WDjZao",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=UxfMvEAWGlg",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=-uUIDRJByYo",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=TXTu7r9X5Mk",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=C8YfcLcM_Eo",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=eZhqDbtshkY",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=6RcK77Jcqdc",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=NWwcC9WP4KA",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=gzricEc4bog",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=Af8JlySDXrk",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=LUKVnzddK9I",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=zJVUWP0TOP8",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=s0mEAPj8VRY",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=sq8ikkS-xvA",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=dzojvuolHmY",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=O8uvYXEmL1U",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      },
+      {
+        "Url": "https://www.youtube.com/watch?v=8zUJmAa7lmE",
+        "FileID": "",
+        "Duration": 0,
+        "Limited": false,
+        "ImpressionsLeft": 0
+      }
+    ]
+  }
+}
