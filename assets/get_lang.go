@@ -112,13 +112,13 @@ func AdminText(lang, key string) string {
 
 func GetCommandFromText(s model.Situation) (string, error) {
 	searchText := getSearchText(s.Message)
-	for key, text := range Language[findLangIndex(s.UserLang)] {
+	for key, text := range Language[findLangIndex(s.User.Language)] {
 		if text == searchText {
 			return Commands[key], nil
 		}
 	}
 
-	if command := searchInCommandAdmins(s, searchText); command != "" {
+	if command := searchInCommandAdmins(s.User.ID, searchText); command != "" {
 		return command, nil
 	}
 
@@ -137,8 +137,8 @@ func getSearchText(message *tgbotapi.Message) string {
 	return message.Text
 }
 
-func searchInCommandAdmins(s model.Situation, searchText string) string {
-	lang := getAdminLang(s.UserID)
+func searchInCommandAdmins(userID int64, searchText string) string {
+	lang := getAdminLang(userID)
 	for key, text := range AdminLibrary[findAdminLangIndex(lang)] {
 		if text == searchText {
 			return Commands[key]

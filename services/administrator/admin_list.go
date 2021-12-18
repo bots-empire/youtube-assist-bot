@@ -9,7 +9,7 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/db"
 	"github.com/Stepan1328/youtube-assist-bot/model"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/msgs"
 )
 
 const (
@@ -28,39 +28,38 @@ func NewAdminListCommand() *AdminListCommand {
 	return &AdminListCommand{}
 }
 
-func (c *AdminListCommand) Serve(s model.Situation) {
-	lang := assets.AdminLang(s.UserID)
+func (c *AdminListCommand) Serve(s model.Situation) error {
+	lang := assets.AdminLang(s.User.ID)
 	text := assets.AdminText(lang, "admin_list_text")
 
-	markUp := msgs2.NewIlMarkUp(
-		msgs2.NewIlRow(msgs2.NewIlAdminButton("add_admin_button", "admin/add_admin_msg")),
-		msgs2.NewIlRow(msgs2.NewIlAdminButton("delete_admin_button", "admin/delete_admin")),
-		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_admin_settings", "admin/admin_setting")),
+	markUp := msgs.NewIlMarkUp(
+		msgs.NewIlRow(msgs.NewIlAdminButton("add_admin_button", "admin/add_admin_msg")),
+		msgs.NewIlRow(msgs.NewIlAdminButton("delete_admin_button", "admin/delete_admin")),
+		msgs.NewIlRow(msgs.NewIlAdminButton("back_to_admin_settings", "admin/admin_setting")),
 	).Build(lang)
 
-	sendMsgAdnAnswerCallback(s, &markUp, text)
+	return sendMsgAdnAnswerCallback(s, &markUp, text)
 }
 
-func CheckNewAdmin(s model.Situation) {
+func CheckNewAdmin(s model.Situation) error {
 	key := strings.Replace(s.Command, "/start new_admin_", "", 1)
 	if availableKeys[key] != "" {
-		assets.AdminSettings.AdminID[s.UserID] = &assets.AdminUser{
+		assets.AdminSettings.AdminID[s.User.ID] = &assets.AdminUser{
 			Language:  "ru",
 			FirstName: s.Message.From.FirstName,
 		}
-		if s.UserID == GodUserID {
-			assets.AdminSettings.AdminID[s.UserID].SpecialPossibility = true
+		if s.User.ID == GodUserID {
+			assets.AdminSettings.AdminID[s.User.ID].SpecialPossibility = true
 		}
 		assets.SaveAdminSettings()
 
-		text := assets.AdminText(s.UserLang, "welcome_to_admin")
-		msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+		text := assets.AdminText(s.User.Language, "welcome_to_admin")
 		availableKeys[key] = ""
-		return
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
-	text := assets.LangText(s.UserLang, "invalid_link_err")
-	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
+	text := assets.LangText(s.User.Language, "invalid_link_err")
+	return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 }
 
 type NewAdminToListCommand struct {
@@ -70,18 +69,19 @@ func NewNewAdminToListCommand() *NewAdminToListCommand {
 	return &NewAdminToListCommand{}
 }
 
-func (c *NewAdminToListCommand) Serve(s model.Situation) {
-	lang := assets.AdminLang(s.UserID)
+func (c *NewAdminToListCommand) Serve(s model.Situation) error {
+	lang := assets.AdminLang(s.User.ID)
 
 	link := createNewAdminLink(s.BotLang)
 	text := adminFormatText(lang, "new_admin_key_text", link, LinkLifeTime)
 
-	msgs2.NewParseMessage(s.BotLang, int64(s.UserID), text)
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
-	s.Command = "/send_admin_list"
-	CheckAdminCallback(s)
+	if err := msgs.NewParseMessage(s.BotLang, s.User.ID, text); err != nil {
+		return err
+	}
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+	_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+	return NewAdminListCommand().Serve(s)
 }
 
 func createNewAdminLink(botLang string) string {
@@ -112,28 +112,29 @@ func NewDeleteAdminCommand() *DeleteAdminCommand {
 	return &DeleteAdminCommand{}
 }
 
-func (c *DeleteAdminCommand) Serve(s model.Situation) {
+func (c *DeleteAdminCommand) Serve(s model.Situation) error {
 	if !adminHavePrivileges(s) {
-		_ = msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "admin_dont_have_permissions")
-		return
+		_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "admin_dont_have_permissions")
+		return nil
 	}
 
-	lang := assets.AdminLang(s.UserID)
-	db.RdbSetUser(s.BotLang, s.UserID, s.CallbackQuery.Data)
+	lang := assets.AdminLang(s.User.ID)
+	db.RdbSetUser(s.BotLang, s.User.ID, s.CallbackQuery.Data)
 
-	_ = msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
-	_ = msgs2.NewParseMessage(s.BotLang, int64(s.UserID), createListOfAdminText(lang))
+	_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "type_the_text")
 
-	//markUp := msgs2.NewMarkUp(
-	//	msgs2.NewRow(msgs2.NewAdminButton("back_to_link_list_menu")),
-	//	msgs2.NewRow(msgs2.NewAdminButton("admin_log_out_text")),
+	//markUp := msgs.NewMarkUp(
+	//	msgs.NewRow(msgs.NewAdminButton("back_to_link_list_menu")),
+	//	msgs.NewRow(msgs.NewAdminButton("admin_log_out_text")),
 	//).Build(lang)
 
-	//msgs2.NewParseMarkUpMessage(s.BotLang, int64(s.UserID), markUp, createListOfAdminText(lang))
+	//msgs.NewParseMarkUpMessage(s.BotLang, int64(s.User.ID), markUp, createListOfAdminText(lang))
+
+	return msgs.NewParseMessage(s.BotLang, s.User.ID, createListOfAdminText(lang))
 }
 
 func adminHavePrivileges(s model.Situation) bool {
-	return assets.AdminSettings.AdminID[s.UserID].SpecialPossibility
+	return assets.AdminSettings.AdminID[s.User.ID].SpecialPossibility
 }
 
 func createListOfAdminText(lang string) string {

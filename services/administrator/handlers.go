@@ -1,17 +1,14 @@
 package administrator
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/db"
 	"github.com/Stepan1328/youtube-assist-bot/model"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	msgs "github.com/Stepan1328/youtube-assist-bot/msgs"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -37,8 +34,6 @@ func (h *AdminMessagesHandlers) Init() {
 	h.OnCommand("/add_limit_to_link", NewSetLimitToLinkCommand())
 	h.OnCommand("/set_limit_to_link", NewUpdateLimitToLinkCommand())
 	h.OnCommand("/delete_link", NewDeleteLinkFromListCommand())
-
-	log.Println("Admin Message Handlers Initialized")
 }
 
 func (h *AdminMessagesHandlers) OnCommand(command string, handler model.Handler) {
@@ -52,29 +47,31 @@ func NewRemoveAdminCommand() *RemoveAdminCommand {
 	return &RemoveAdminCommand{}
 }
 
-func (c *RemoveAdminCommand) Serve(s model.Situation) {
-	lang := assets.AdminLang(s.UserID)
+func (c *RemoveAdminCommand) Serve(s model.Situation) error {
+	lang := assets.AdminLang(s.User.ID)
 	adminId, err := strconv.ParseInt(s.Message.Text, 10, 64)
 	if err != nil {
 		text := assets.AdminText(lang, "incorrect_admin_id_text")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	if !checkAdminIDInTheList(adminId) {
 		text := assets.AdminText(lang, "incorrect_admin_id_text")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	delete(assets.AdminSettings.AdminID, adminId)
 	assets.SaveAdminSettings()
-	setAdminBackButton(s.BotLang, s.UserID, "admin_removed_status")
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	err = setAdminBackButton(s.BotLang, s.User.ID, "admin_removed_status")
+	if err != nil {
+		return err
+	}
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 
-	s.Command = "admin/send_admin_list"
 	s.CallbackQuery = &tgbotapi.CallbackQuery{Data: "admin/send_admin_list"}
-	CheckAdminCallback(s)
+	return NewAdminListCommand().Serve(s)
 }
 
 func checkAdminIDInTheList(adminID int64) bool {
@@ -89,18 +86,17 @@ func NewAdvertisementSettingCommand() *AdvertisementSettingCommand {
 	return &AdvertisementSettingCommand{}
 }
 
-func (c *AdvertisementSettingCommand) Serve(s model.Situation) {
+func (c *AdvertisementSettingCommand) Serve(s model.Situation) error {
 	s.CallbackQuery = &tgbotapi.CallbackQuery{
 		Data: "admin/change_text_url?",
 	}
-	s.Command = "admin/advertisement"
-	CheckAdminCallback(s)
+
+	return NewAdvertisementMenuCommand().Serve(s)
 }
 
-func CheckAdminMessage(s model.Situation) bool {
-	if !containsInAdmin(s.UserID) {
-		notAdmin(s.BotLang, s.UserID)
-		return true
+func CheckAdminMessage(s model.Situation) error {
+	if !containsInAdmin(s.User.ID) {
+		return notAdmin(s.BotLang, s.User)
 	}
 
 	s.Command, s.Err = assets.GetCommandFromText(s)
@@ -109,8 +105,7 @@ func CheckAdminMessage(s model.Situation) bool {
 			GetHandler(s.Command)
 
 		if Handler != nil {
-			Handler.Serve(s)
-			return true
+			return Handler.Serve(s)
 		}
 	}
 
@@ -120,11 +115,10 @@ func CheckAdminMessage(s model.Situation) bool {
 		GetHandler(s.Command)
 
 	if Handler != nil {
-		Handler.Serve(s)
-		return true
+		return Handler.Serve(s)
 	}
 
-	return false
+	return model.ErrCommandNotConverted
 }
 
 type SetNewTextUrlCommand struct {
@@ -134,9 +128,9 @@ func NewSetNewTextUrlCommand() *SetNewTextUrlCommand {
 	return &SetNewTextUrlCommand{}
 }
 
-func (c *SetNewTextUrlCommand) Serve(s model.Situation) {
+func (c *SetNewTextUrlCommand) Serve(s model.Situation) error {
 	capitation := strings.Split(s.Params.Level, "?")[1]
-	lang := assets.AdminLang(s.UserID)
+	lang := assets.AdminLang(s.User.ID)
 	status := "operation_canceled"
 
 	switch capitation {
@@ -144,8 +138,7 @@ func (c *SetNewTextUrlCommand) Serve(s model.Situation) {
 		advertChan := getUrlAndChatID(s.Message)
 		if advertChan.ChannelID == 0 {
 			text := assets.AdminText(lang, "chat_id_not_update")
-			msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-			return
+			return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 		}
 
 		assets.AdminSettings.AdvertisingChan[s.BotLang] = advertChan
@@ -155,12 +148,14 @@ func (c *SetNewTextUrlCommand) Serve(s model.Situation) {
 	assets.SaveAdminSettings()
 	status = "operation_completed"
 
-	setAdminBackButton(s.BotLang, s.UserID, status)
-	db.RdbSetUser(s.BotLang, s.UserID, "admin")
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
-	s.Command = "admin/advertisement"
+	err := setAdminBackButton(s.BotLang, s.User.ID, status)
+	if err != nil {
+		return err
+	}
+	db.RdbSetUser(s.BotLang, s.User.ID, "admin")
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 	s.Params.Level = "admin/change_url"
-	CheckAdminCallback(s)
+	return NewAdvertisementMenuCommand().Serve(s)
 }
 
 func getUrlAndChatID(message *tgbotapi.Message) *assets.AdvertChannel {
@@ -187,14 +182,13 @@ func NewUpdateParameterCommand() *UpdateParameterCommand {
 	return &UpdateParameterCommand{}
 }
 
-func (c *UpdateParameterCommand) Serve(s model.Situation) {
-	lang := assets.AdminLang(s.UserID)
+func (c *UpdateParameterCommand) Serve(s model.Situation) error {
+	lang := assets.AdminLang(s.User.ID)
 
 	newAmount, err := strconv.Atoi(s.Message.Text)
 	if err != nil || newAmount <= 0 {
 		text := assets.AdminText(lang, "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
@@ -218,11 +212,13 @@ func (c *UpdateParameterCommand) Serve(s model.Situation) {
 		assets.AdminSettings.Parameters[s.BotLang].ReferralAmount = newAmount
 	}
 	assets.SaveAdminSettings()
-	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	err = setAdminBackButton(s.BotLang, s.User.ID, "operation_completed")
+	if err != nil {
+		return err
+	}
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 
-	s.Command = "admin/rewards_setting"
-	CheckAdminCallback(s)
+	return NewRewardsSettingCommand().Serve(s)
 }
 
 type AddLinkToListCommand struct {
@@ -232,11 +228,9 @@ func NewAddLinkToListCommand() *AddLinkToListCommand {
 	return &AddLinkToListCommand{}
 }
 
-func (c *AddLinkToListCommand) Serve(s model.Situation) {
-	if s.Message.Text == assets.AdminText(assets.AdminLang(s.UserID), "back_to_link_list_menu") {
-		s.Command = "admin/link_setting"
-		CheckAdminCallback(s)
-		return
+func (c *AddLinkToListCommand) Serve(s model.Situation) error {
+	if s.Message.Text == assets.AdminText(assets.AdminLang(s.User.ID), "back_to_link_list_menu") {
+		return NewLinkSettingCommand().Serve(s)
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
@@ -245,39 +239,34 @@ func (c *AddLinkToListCommand) Serve(s model.Situation) {
 		assets.Tasks[s.BotLang].Partition[partition] = append(assets.Tasks[s.BotLang].Partition[partition], &assets.Link{
 			Url: link,
 		})
-		updateTasks(s, partition)
-		return
+
+		return updateTasks(s, partition)
 	}
 
 	if s.Message.Video == nil {
-		bytes, err := json.MarshalIndent(s.Message.Video, "", "  ")
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		fmt.Println(string(bytes))
-
-		lang := assets.AdminLang(s.UserID)
+		lang := assets.AdminLang(s.User.ID)
 		text := assets.AdminText(lang, "incorrect_new_video")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	assets.Tasks[s.BotLang].Partition[partition] = append(assets.Tasks[s.BotLang].Partition[partition], &assets.Link{
 		FileID:   s.Message.Video.FileID,
 		Duration: s.Message.Video.Duration,
 	})
-	updateTasks(s, partition)
+
+	return updateTasks(s, partition)
 }
 
-func updateTasks(s model.Situation, partition string) {
+func updateTasks(s model.Situation, partition string) error {
 	assets.SaveTasks(s.BotLang)
-	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	err := setAdminBackButton(s.BotLang, s.User.ID, "operation_completed")
+	if err != nil {
+		return err
+	}
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 
-	s.Command = "admin/change_link"
 	s.CallbackQuery = &tgbotapi.CallbackQuery{Data: "admin/change_link?" + partition}
-	CheckAdminCallback(s)
+	return NewChangeLinkMenuCommand().Serve(s)
 }
 
 type SetLimitToLinkCommand struct {
@@ -287,32 +276,29 @@ func NewSetLimitToLinkCommand() *SetLimitToLinkCommand {
 	return &SetLimitToLinkCommand{}
 }
 
-func (c *SetLimitToLinkCommand) Serve(s model.Situation) {
-	lang := assets.AdminLang(s.UserID)
+func (c *SetLimitToLinkCommand) Serve(s model.Situation) error {
+	lang := assets.AdminLang(s.User.ID)
 	if s.Message.Text == assets.AdminText(lang, "back_to_link_list_menu") {
 		s.Command = "admin/link_setting"
-		CheckAdminCallback(s)
-		return
+		return CheckAdminCallback(s)
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
 	linkNumber, err := strconv.Atoi(s.Message.Text)
 	if err != nil {
 		text := assets.AdminText(lang, "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	if len(assets.Tasks[s.BotLang].Partition[partition]) < linkNumber {
-		text := assets.AdminText(assets.AdminLang(s.UserID), "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		text := assets.AdminText(assets.AdminLang(s.User.ID), "incorrect_make_money_change_input")
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
-	db.RdbSetUser(s.BotLang, s.UserID, "admin/set_limit_to_link?"+partition+"?"+strconv.Itoa(linkNumber))
+	db.RdbSetUser(s.BotLang, s.User.ID, "admin/set_limit_to_link?"+partition+"?"+strconv.Itoa(linkNumber))
 	text := adminFormatText(lang, "invitation_to_send_limit",
 		assets.Tasks[s.BotLang].Partition[partition][linkNumber-1].Url)
-	msgs2.NewParseMessage(s.BotLang, s.UserID, text)
+	return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 }
 
 type UpdateLimitToLinkCommand struct {
@@ -322,12 +308,10 @@ func NewUpdateLimitToLinkCommand() *UpdateLimitToLinkCommand {
 	return &UpdateLimitToLinkCommand{}
 }
 
-func (c *UpdateLimitToLinkCommand) Serve(s model.Situation) {
-	lang := assets.AdminLang(s.UserID)
+func (c *UpdateLimitToLinkCommand) Serve(s model.Situation) error {
+	lang := assets.AdminLang(s.User.ID)
 	if s.Message.Text == assets.AdminText(lang, "back_to_link_list_menu") {
-		s.Command = "admin/link_setting"
-		CheckAdminCallback(s)
-		return
+		return NewLinkSettingCommand().Serve(s)
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
@@ -335,8 +319,7 @@ func (c *UpdateLimitToLinkCommand) Serve(s model.Situation) {
 	newImpression, err := strconv.Atoi(s.Message.Text)
 	if err != nil || newImpression < 1 {
 		text := assets.AdminText(lang, "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	assets.Tasks[s.BotLang].Partition[partition][linkNumber-1] = &assets.Link{
@@ -348,12 +331,14 @@ func (c *UpdateLimitToLinkCommand) Serve(s model.Situation) {
 	}
 
 	assets.SaveTasks(s.BotLang)
-	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	err = setAdminBackButton(s.BotLang, s.User.ID, "operation_completed")
+	if err != nil {
+		return err
+	}
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 
-	s.Command = "admin/change_link"
 	s.CallbackQuery = &tgbotapi.CallbackQuery{Data: "admin/change_link?" + partition}
-	CheckAdminCallback(s)
+	return NewChangeLinkMenuCommand().Serve(s)
 }
 
 type DeleteLinkFromListCommand struct {
@@ -363,35 +348,33 @@ func NewDeleteLinkFromListCommand() *DeleteLinkFromListCommand {
 	return &DeleteLinkFromListCommand{}
 }
 
-func (c *DeleteLinkFromListCommand) Serve(s model.Situation) {
-	if s.Message.Text == assets.AdminText(assets.AdminLang(s.UserID), "back_to_link_list_menu") {
-		s.Command = "admin/link_setting"
-		CheckAdminCallback(s)
-		return
+func (c *DeleteLinkFromListCommand) Serve(s model.Situation) error {
+	if s.Message.Text == assets.AdminText(assets.AdminLang(s.User.ID), "back_to_link_list_menu") {
+		return NewLinkSettingCommand().Serve(s)
 	}
 
 	partition := strings.Split(s.Params.Level, "?")[1]
 	linkNumber, err := strconv.Atoi(s.Message.Text)
 	if err != nil {
-		text := assets.AdminText(assets.AdminLang(s.UserID), "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		text := assets.AdminText(assets.AdminLang(s.User.ID), "incorrect_make_money_change_input")
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	err = deleteLinkFromList(s, partition, linkNumber-1)
 	if err != nil {
-		text := assets.AdminText(assets.AdminLang(s.UserID), "incorrect_make_money_change_input")
-		msgs2.NewParseMessage(s.BotLang, s.UserID, text)
-		return
+		text := assets.AdminText(assets.AdminLang(s.User.ID), "incorrect_make_money_change_input")
+		return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 	}
 
 	assets.SaveTasks(s.BotLang)
-	setAdminBackButton(s.BotLang, s.UserID, "operation_completed")
-	db.DeleteOldAdminMsg(s.BotLang, s.UserID)
+	err = setAdminBackButton(s.BotLang, s.User.ID, "operation_completed")
+	if err != nil {
+		return err
+	}
+	db.DeleteOldAdminMsg(s.BotLang, s.User.ID)
 
-	s.Command = "admin/change_link"
 	s.CallbackQuery = &tgbotapi.CallbackQuery{Data: "admin/change_link?" + partition}
-	CheckAdminCallback(s)
+	return NewChangeLinkMenuCommand().Serve(s)
 }
 
 func deleteLinkFromList(s model.Situation, partition string, linkNumber int) error {

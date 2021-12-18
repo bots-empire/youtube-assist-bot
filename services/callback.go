@@ -1,21 +1,17 @@
 package services
 
 import (
-	"log"
 	"strconv"
 	"strings"
 
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/db"
+	"github.com/Stepan1328/youtube-assist-bot/log"
 	"github.com/Stepan1328/youtube-assist-bot/model"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/msgs"
 	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
 	"github.com/Stepan1328/youtube-assist-bot/services/auth"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-)
-
-const (
-	updateLangQuery = "UPDATE users SET lang = ? WHERE id = ?;"
 )
 
 type CallBackHandlers struct {
@@ -39,26 +35,32 @@ func (h *CallBackHandlers) Init() {
 	//Change language command
 	//h.OnCommand("/send_change_lang", NewSendLanguageCommand())
 	//h.OnCommand("/change_lang", NewChangeLanguageCommand())
-
-	log.Println("CallBack Handlers Initialized")
 }
 
 func (h *CallBackHandlers) OnCommand(command string, handler model.Handler) {
 	h.Handlers[command] = handler
 }
 
-func checkCallbackQuery(s model.Situation) {
+func checkCallbackQuery(s model.Situation, logger log.Logger) {
 	if strings.Contains(s.Params.Level, "admin") {
-		administrator.CheckAdminCallback(s)
+		if err := administrator.CheckAdminCallback(s); err != nil {
+			logger.Warn("error with serve admin callback command: %s", err.Error())
+		}
+		return
 	}
 
 	Handler := model.Bots[s.BotLang].CallbackHandler.
 		GetHandler(s.Command)
 
 	if Handler != nil {
-		Handler.Serve(s)
+		if err := Handler.Serve(s); err != nil {
+			logger.Warn("error with serve user callback command: %s", err.Error())
+			smthWentWrong(s.BotLang, s.CallbackQuery.Message.Chat.ID, s.User.Language)
+		}
 		return
 	}
+
+	logger.Warn("get callback data='%s', but they didn't react in any way", s.CallbackQuery.Data)
 }
 
 type GetBonusCommand struct {
@@ -68,13 +70,8 @@ func NewGetBonusCommand() *GetBonusCommand {
 	return &GetBonusCommand{}
 }
 
-func (c *GetBonusCommand) Serve(s model.Situation) {
-	user, err := auth.GetUser(s.BotLang, s.UserID)
-	if err != nil {
-		return
-	}
-
-	user.GetABonus(s)
+func (c *GetBonusCommand) Serve(s model.Situation) error {
+	return auth.GetABonus(s)
 }
 
 type RepeatTaskCommand struct {
@@ -84,11 +81,19 @@ func NewRepeatTaskCommand() *RepeatTaskCommand {
 	return &RepeatTaskCommand{}
 }
 
-func (c *RepeatTaskCommand) Serve(s model.Situation) {
+func (c *RepeatTaskCommand) Serve(s model.Situation) error {
 	s.Command = strings.Split(s.CallbackQuery.Data, "?")[0] + "?"
 
-	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "watch_previous_video")
-	checkMessage(s)
+	_ = msgs.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.User.Language, "watch_previous_video")
+
+	Handler := model.Bots[s.BotLang].MessageHandler.
+		GetHandler(s.Command)
+
+	if Handler != nil {
+		return Handler.Serve(s)
+	}
+
+	return nil
 }
 
 type WithdrawalMainCommand struct {
@@ -98,58 +103,19 @@ func NewWithdrawalMainCommand() *WithdrawalMainCommand {
 	return &WithdrawalMainCommand{}
 }
 
-func (c *WithdrawalMainCommand) Serve(s model.Situation) {
-	db.RdbSetUser(s.BotLang, s.UserID, "withdrawal")
+func (c *WithdrawalMainCommand) Serve(s model.Situation) error {
+	db.RdbSetUser(s.BotLang, s.User.ID, "withdrawal")
 
-	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "select_payment"))
+	msg := tgbotapi.NewMessage(s.User.ID, assets.LangText(s.User.Language, "select_payment"))
 
-	msg.ReplyMarkup = msgs2.NewMarkUp(
-		msgs2.NewRow(msgs2.NewDataButton("paypal_method"),
-			msgs2.NewDataButton("credit_card_method")),
-		msgs2.NewRow(msgs2.NewDataButton("back_to_main_menu_button")),
-	).Build(s.UserLang)
+	msg.ReplyMarkup = msgs.NewMarkUp(
+		msgs.NewRow(msgs.NewDataButton("paypal_method"),
+			msgs.NewDataButton("credit_card_method")),
+		msgs.NewRow(msgs.NewDataButton("back_to_main_menu_button")),
+	).Build(s.User.Language)
 
-	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "make_a_choice")
-	msgs2.SendMsgToUser(s.BotLang, msg)
-}
-
-type ChangeLanguageCommand struct {
-}
-
-func NewChangeLanguageCommand() *ChangeLanguageCommand {
-	return &ChangeLanguageCommand{}
-}
-
-func (c *ChangeLanguageCommand) Serve(s model.Situation) {
-	newLang := getNewLang(s)
-
-	setLanguage(s, newLang)
-	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, newLang, "language_successful_set")
-	db.DeleteTemporaryMessages(s.BotLang, s.CallbackQuery.From.ID)
-}
-
-func getNewLang(s model.Situation) string {
-	return strings.Split(s.CallbackQuery.Data, "?")[1]
-}
-
-func setLanguage(s model.Situation, newLang string) {
-	db.RdbSetUser(s.BotLang, s.UserID, "main")
-
-	if newLang == "back" {
-		s.Command = "/start"
-		checkMessage(s)
-		return
-	}
-
-	dataBase := model.GetDB(s.BotLang)
-	rows, err := dataBase.Query(updateLangQuery, newLang, s.UserID)
-	if err != nil {
-		panic(err.Error())
-	}
-	rows.Close()
-
-	s.Command = "/start"
-	checkMessage(s)
+	_ = msgs.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.User.Language, "make_a_choice")
+	return msgs.SendMsgToUser(s.BotLang, msg)
 }
 
 type RecheckSubscribeCommand struct {
@@ -159,24 +125,22 @@ func NewRecheckSubscribeCommand() *RecheckSubscribeCommand {
 	return &RecheckSubscribeCommand{}
 }
 
-func (c *RecheckSubscribeCommand) Serve(s model.Situation) {
+func (c *RecheckSubscribeCommand) Serve(s model.Situation) error {
 	amount := strings.Split(s.CallbackQuery.Data, "?")[1]
 	s.Message = &tgbotapi.Message{
 		Text: amount,
 	}
-	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "invitation_to_subscribe")
-	u, err := auth.GetUser(s.BotLang, s.UserID)
-	if err != nil {
-		return
-	}
+	_ = msgs.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.User.Language, "invitation_to_subscribe")
 
 	amountInt, _ := strconv.Atoi(amount)
 
-	if u.CheckSubscribeToWithdrawal(s, amountInt) {
-		db.RdbSetUser(s.BotLang, s.UserID, "main")
+	if auth.CheckSubscribeToWithdrawal(s, amountInt) {
+		db.RdbSetUser(s.BotLang, s.User.ID, "main")
 
-		sendMainMenu(s)
+		return NewStartCommand().Serve(s)
 	}
+
+	return nil
 }
 
 type PromotionCaseCommand struct {
@@ -186,66 +150,27 @@ func NewPromotionCaseCommand() *PromotionCaseCommand {
 	return &PromotionCaseCommand{}
 }
 
-func (c *PromotionCaseCommand) Serve(s model.Situation) {
-	user, err := auth.GetUser(s.BotLang, s.UserID)
+func (c *PromotionCaseCommand) Serve(s model.Situation) error {
+	user, err := auth.GetUser(s.BotLang, s.User.ID)
 	if err != nil {
-		return
+		return err
 	}
 
 	cost, err := strconv.Atoi(strings.Split(s.CallbackQuery.Data, "?")[1])
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 
 	if user.Balance < cost {
-		msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "not_enough_money")
-		return
+		return msgs.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.User.Language, "not_enough_money")
 	}
 
-	db.RdbSetUser(s.BotLang, s.UserID, s.CallbackQuery.Data)
-	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "invitation_to_send_link_text"))
-	msg.ReplyMarkup = msgs2.NewMarkUp(
-		msgs2.NewRow(msgs2.NewDataButton("withdraw_cancel")),
-	).Build(s.UserLang)
+	db.RdbSetUser(s.BotLang, s.User.ID, s.CallbackQuery.Data)
+	msg := tgbotapi.NewMessage(s.User.ID, assets.LangText(s.User.Language, "invitation_to_send_link_text"))
+	msg.ReplyMarkup = msgs.NewMarkUp(
+		msgs.NewRow(msgs.NewDataButton("withdraw_cancel")),
+	).Build(s.User.Language)
 
-	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "invitation_to_send_link")
-	msgs2.SendMsgToUser(s.BotLang, msg)
-}
-
-type SendLanguageCommand struct {
-}
-
-func NewSendLanguageCommand() *SendLanguageCommand {
-	return &SendLanguageCommand{}
-}
-
-func (c *SendLanguageCommand) Serve(s model.Situation) {
-	msg := tgbotapi.NewMessage(int64(s.UserID), assets.LangText(s.UserLang, "select_language"))
-
-	markUp := parseChangeLanguageButton()
-	markUp.Rows = append(markUp.Rows, msgs2.NewIlRow(
-		msgs2.NewIlDataButton("back_to_main_menu_button", "/change_lang?back")),
-	)
-	msg.ReplyMarkup = markUp.Build(s.UserLang)
-
-	bot := model.GetBot(s.BotLang)
-	data, err := bot.Send(msg)
-	if err != nil {
-		log.Println(err)
-	}
-
-	msgs2.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.UserLang, "make_a_choice")
-	db.RdbSetTemporary(s.BotLang, s.UserID, data.MessageID)
-}
-
-func parseChangeLanguageButton() *msgs2.InlineMarkUp {
-	markUp := msgs2.NewIlMarkUp()
-
-	for _, lang := range assets.AvailableLang {
-		markUp.Rows = append(markUp.Rows,
-			msgs2.NewIlRow(msgs2.NewIlDataButton("lang_"+lang, "/change_lang?"+lang)),
-		)
-	}
-	return &markUp
+	_ = msgs.SendAnswerCallback(s.BotLang, s.CallbackQuery, s.User.Language, "invitation_to_send_link")
+	return msgs.SendMsgToUser(s.BotLang, msg)
 }

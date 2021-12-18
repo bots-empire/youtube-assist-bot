@@ -43,7 +43,7 @@ type GlobalHandlers interface {
 }
 
 type Handler interface {
-	Serve(situation Situation)
+	Serve(situation Situation) error
 }
 
 func UploadDataBase(dbLang string) *sql.DB {

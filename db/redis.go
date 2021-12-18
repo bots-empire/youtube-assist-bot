@@ -123,7 +123,7 @@ func DeleteTemporaryMessages(botLang string, userID int64) {
 }
 
 func RdbSetMakeMoneyLevel(s model.Situation, breakTime string) {
-	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.UserID)
+	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.User.ID)
 	_, err := model.Bots[s.BotLang].Rdb.Set(makeMoneyID, "/make_money_"+s.Params.Partition+"?"+breakTime, 0).Result()
 	if err != nil {
 		log.Println(err)
@@ -135,7 +135,7 @@ func makeMoneyLevelKey(partition string, userID int64) string {
 }
 
 func RdbGetMakeMoneyLevel(s model.Situation) string {
-	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.UserID)
+	makeMoneyID := makeMoneyLevelKey(s.Params.Partition, s.User.ID)
 	result, err := model.Bots[s.BotLang].Rdb.Get(makeMoneyID).Result()
 	if err != nil && err.Error() != nilRedisErr {
 		log.Println(err)

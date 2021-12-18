@@ -6,7 +6,7 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/db"
 	"github.com/Stepan1328/youtube-assist-bot/model"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/msgs"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -17,10 +17,11 @@ func NewStartMailingCommand() *StartMailingCommand {
 	return &StartMailingCommand{}
 }
 
-func (c *StartMailingCommand) Serve(s model.Situation) {
+func (c *StartMailingCommand) Serve(s model.Situation) error {
 	go db.StartMailing(s.BotLang)
-	msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "mailing_successful")
+	_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "mailing_successful")
 	resendAdvertisementMenuLevel(s.BotLang, s.CallbackQuery.From.ID)
+	return nil
 }
 
 type SelectedLangCommand struct {
@@ -30,49 +31,55 @@ func NewSelectedLangCommand() *SelectedLangCommand {
 	return &SelectedLangCommand{}
 }
 
-func (c *SelectedLangCommand) Serve(s model.Situation) {
+func (c *SelectedLangCommand) Serve(s model.Situation) error {
 	data := strings.Split(s.CallbackQuery.Data, "?")
 	partition := data[1]
 	lang := data[2]
 	switch partition {
 	case "switch_lang":
 		switchLangOnKeyboard(lang)
-		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
-		sendMailingMenu(s.BotLang, s.UserID)
+		_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+		return sendMailingMenu(s.BotLang, s.User.ID)
 	case "switch_all":
 		switchedSelectedLanguages()
-		msgs2.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
-		sendMailingMenu(s.BotLang, s.UserID)
+		_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "make_a_choice")
+		return sendMailingMenu(s.BotLang, s.User.ID)
 	}
+
+	return nil
 }
 
-func sendMailingMenu(botLang string, userID int64) {
+func sendMailingMenu(botLang string, userID int64) error {
 	lang := assets.AdminLang(userID)
 
 	text := assets.AdminText(lang, "mailing_main_text")
 	markUp := createMailingMarkUp(lang)
 
 	if db.RdbGetAdminMsgID(botLang, userID) == 0 {
-		msgID, _ := msgs2.NewIDParseMarkUpMessage(botLang, userID, &markUp, text)
+		msgID, err := msgs.NewIDParseMarkUpMessage(botLang, userID, &markUp, text)
+		if err != nil {
+			return err
+		}
 		db.RdbSetAdminMsgID(botLang, userID, msgID)
-		return
+		return nil
 	}
-	msgs2.NewEditMarkUpMessage(botLang, userID, db.RdbGetAdminMsgID(botLang, userID), &markUp, text)
+
+	return msgs.NewEditMarkUpMessage(botLang, userID, db.RdbGetAdminMsgID(botLang, userID), &markUp, text)
 }
 
 func createMailingMarkUp(lang string) tgbotapi.InlineKeyboardMarkup {
-	markUp := &msgs2.InlineMarkUp{}
+	markUp := &msgs.InlineMarkUp{}
 
 	markUp.Rows = append(markUp.Rows,
-		//msgs2.NewIlRow(msgs2.NewIlAdminButton(text, data)),
-		msgs2.NewIlRow(msgs2.NewIlAdminButton("start_mailing_button", "admin/start_mailing")),
-		msgs2.NewIlRow(msgs2.NewIlAdminButton("back_to_advertisement_setting", "admin/advertisement")),
+		//msgs.NewIlRow(msgs.NewIlAdminButton(text, data)),
+		msgs.NewIlRow(msgs.NewIlAdminButton("start_mailing_button", "admin/start_mailing")),
+		msgs.NewIlRow(msgs.NewIlAdminButton("back_to_advertisement_setting", "admin/advertisement")),
 	)
 	return markUp.Build(lang)
 }
 
-func parseMainLanguageButton() *msgs2.InlineMarkUp {
-	markUp := msgs2.NewIlMarkUp()
+func parseMainLanguageButton() *msgs.InlineMarkUp {
+	markUp := msgs.NewIlMarkUp()
 
 	for _, lang := range assets.AvailableLang {
 		button := "button_"
@@ -82,7 +89,7 @@ func parseMainLanguageButton() *msgs2.InlineMarkUp {
 			button += "off_" + lang
 		}
 		markUp.Rows = append(markUp.Rows,
-			msgs2.NewIlRow(msgs2.NewIlAdminButton(button, "admin/send_advertisement?switch_lang?"+lang)),
+			msgs.NewIlRow(msgs.NewIlAdminButton(button, "admin/send_advertisement?switch_lang?"+lang)),
 		)
 	}
 	return &markUp
@@ -98,7 +105,7 @@ func resendAdvertisementMenuLevel(botLang string, userID int64) {
 
 	db.RdbSetUser(botLang, userID, "admin/advertisement")
 	inlineMarkUp, text := getAdvertisementMenu(botLang, userID)
-	msgID, _ := msgs2.NewIDParseMarkUpMessage(botLang, userID, inlineMarkUp, text)
+	msgID, _ := msgs.NewIDParseMarkUpMessage(botLang, userID, inlineMarkUp, text)
 	db.RdbSetAdminMsgID(botLang, userID, msgID)
 }
 

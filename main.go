@@ -1,14 +1,14 @@
 package main
 
 import (
-	"log"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/Stepan1328/youtube-assist-bot/assets"
+	"github.com/Stepan1328/youtube-assist-bot/log"
 	"github.com/Stepan1328/youtube-assist-bot/model"
-	msgs2 "github.com/Stepan1328/youtube-assist-bot/msgs"
+	msgs "github.com/Stepan1328/youtube-assist-bot/msgs"
 	"github.com/Stepan1328/youtube-assist-bot/services"
 	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -17,17 +17,20 @@ import (
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	startServices()
-	startAllBot()
+	logger := log.NewDefaultLogger().Prefix("Voice Bot")
+	log.PrintLogo("Voice Bot", []string{"3C91FF"})
+
+	startServices(logger)
+	startAllBot(logger)
 	assets.UploadUpdateStatistic()
 
-	startHandlers()
+	startHandlers(logger)
 }
 
-func startAllBot() {
+func startAllBot(logger log.Logger) {
 	k := 0
 	for lang, globalBot := range model.Bots {
-		StartBot(globalBot, lang, k)
+		startBot(globalBot, logger, lang, k)
 		model.Bots[lang].MessageHandler = NewMessagesHandler()
 		model.Bots[lang].CallbackHandler = NewCallbackHandler()
 		model.Bots[lang].AdminMessageHandler = NewAdminMessagesHandler()
@@ -35,10 +38,10 @@ func startAllBot() {
 		k++
 	}
 
-	log.Println("All bots is running")
+	logger.Ok("All bots is running")
 }
 
-func startServices() {
+func startServices(logger log.Logger) {
 	model.FillBotsConfig()
 	assets.ParseLangMap()
 	assets.ParseTasks()
@@ -46,15 +49,14 @@ func startServices() {
 	assets.UploadAdminSettings()
 	assets.ParseCommandsList()
 
-	log.Println("All services are running successfully")
+	logger.Ok("All services are running successfully")
 }
 
-func StartBot(b *model.GlobalBot, lang string, k int) {
+func startBot(b *model.GlobalBot, logger log.Logger, lang string, k int) {
 	var err error
 	b.Bot, err = tgbotapi.NewBotAPI(b.BotToken)
 	if err != nil {
-		log.Println(err)
-		return
+		logger.Fatal("error start bot: %s", err.Error())
 	}
 
 	u := tgbotapi.NewUpdate(0)
@@ -65,19 +67,19 @@ func StartBot(b *model.GlobalBot, lang string, k int) {
 	b.DataBase = model.UploadDataBase(lang)
 }
 
-func startHandlers() {
+func startHandlers(logger log.Logger) {
 	wg := new(sync.WaitGroup)
 
 	for botLang, handler := range model.Bots {
 		wg.Add(1)
 		go func(botLang string, handler *model.GlobalBot, wg *sync.WaitGroup) {
 			defer wg.Done()
-			services.ActionsWithUpdates(botLang, handler.Chanel)
+			services.ActionsWithUpdates(botLang, handler.Chanel, logger)
 		}(botLang, handler, wg)
 	}
 
-	log.Println("All handlers are running")
-	msgs2.NewParseMessage("it", 1418862576, "All bots are restart")
+	logger.Ok("All handlers are running")
+	_ = msgs.NewParseMessage("it", 1418862576, "All bots are restart")
 	wg.Wait()
 }
 

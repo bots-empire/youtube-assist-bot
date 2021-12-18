@@ -8,8 +8,7 @@ type Situation struct {
 	Message       *tgbotapi.Message
 	CallbackQuery *tgbotapi.CallbackQuery
 	BotLang       string
-	UserID        int64
-	UserLang      string
+	User          *User
 	Command       string
 	Params        Parameters
 	Err           error
