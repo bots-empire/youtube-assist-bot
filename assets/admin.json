@@ -2,7 +2,7 @@
   "AdminID": {
     "130328733": {
       "Language": "ru",
-      "FirstName": "Invisible",
+      "FirstName": "先生",
       "SpecialPossibility": false
     },
     "138814168": {
@@ -18,6 +18,11 @@
     "1615496334": {
       "Language": "ru",
       "FirstName": "Дмитрий",
+      "SpecialPossibility": false
+    },
+    "753841433": {
+      "Language": "ru",
+      "FirstName": "Sh",
       "SpecialPossibility": false
     },
     "846365276": {
@@ -72,6 +77,16 @@
       "MaxOfVideoPerDayA": 1,
       "ReferralAmount": 50
     },
+    "it2": {
+      "BonusAmount": 75,
+      "MinWithdrawalAmount": 1000,
+      "WatchReward": 5,
+      "SecondBetweenViews": 20,
+      "MaxOfVideoPerDayT": 10,
+      "MaxOfVideoPerDayY": 8,
+      "MaxOfVideoPerDayA": 2,
+      "ReferralAmount": 50
+    },
     "mx": {
       "BonusAmount": 2400,
       "MinWithdrawalAmount": 24000,
@@ -85,20 +100,24 @@
   },
   "AdvertisingChan": {
     "br": {
-      "Url": "https://t.me/joinchat/w6bEtJiZOTZhYjMy",
-      "ChannelID": -1001247665630
+      "Url": "https://t.me/+9O2RRxufl7U1NDVi",
+      "ChannelID": -1001346241898
     },
     "en": {
       "Url": "https://t.me/joinchat/KPdMj51hWp44MTli",
       "ChannelID": -1001204209432
     },
     "es": {
-      "Url": "https://t.me/joinchat/zwhPxCbl6ZxmZmYy",
+      "Url": "https://t.me/+atSNTDNUc29lNjM6",
       "ChannelID": -1001548907926
     },
     "it": {
-      "Url": "https://t.me/joinchat/5DC_5t5lA18wODNi",
-      "ChannelID": -1001399393932
+      "Url": "https://t.me/+yhbySMhvmuAzODVi",
+      "ChannelID": -1001760720821
+    },
+    "it2": {
+      "Url": "https://t.me/joinchat/huEUHu3xuEljNWFi",
+      "ChannelID": -1001694312918
     },
     "mx": {
       "Url": "https://t.me/joinchat/fpS6wmVCotMwZjk6",
@@ -106,7 +125,7 @@
     }
   },
   "BlockedUsers": {
-    "it": 10983
+    "es": 3471
   },
   "LangSelectedMap": {
     "br": false,
@@ -114,14 +133,16 @@
     "en": false,
     "es": false,
     "it": false,
+    "it2": false,
     "mx": false
   },
   "AdvertisingText": {
-    "br": "✅Caros amigos, este é o espantoso canal «Сaminho da felicidade»\n👨🏽‍💻O seu proprietário é um homem muito amável e generoso.\n💸Ensinará a todos como ganhar 1500 € por dia. \n🥳Não é necessário ter um ensino superior para o fazer, qualquer pessoa o pode fazer.",
+    "br": "❗️Atenção❗️\n\nTenho o prazer de apresentar um novo projecto e o seu criador, ele irá ensinar-vos a ganhar 2000-5000 euros por dia.💰\n\nPague pela formação e ajuda depois de ganhar!💶\n\nPonha os seus medos de lado e comece já a ganhar!🤑",
     "de": "💰 Get $ 5,800 here and now! 💰\n\n😱 Today Amit Kotak shows on his channel \"MONEY GENERATOR\" how to earn 5800 dollars !!!\nAll conditions are specified on the channel. Don't miss this opportunity ...\n\n😱 Already today, Amit Kotak on his channel \"MONEY GENERATOR\" will teach each of his subscribers to earn $ 5800 in just 15 minutes !!!\nSix months ago, he founded a channel where he honestly shares instructions on how to make money. About 5,000 people already work with it and earn $ 5,800 ! No one will give up ...\n\n👇 The link is available for 2 hours. Hurry up...",
     "en": "💰 OBTENHA 10000R$ AQUI E AGORA! 💰\n😱 Hoje, no novo canal \"Tornar-se feliz\" mostra como ganhar 10000R$ !!!\nTodas as condições são especificadas no canal. Não perca esta oportunidade ...\n\n😱 Hoje no canal \"Tornar-se feliz\" ensinará cada um de seus assinantes a ganhar 10000R$ em apenas 15 minutos !!!\nSeis meses atrás, ele criou um canal onde honestamente compartilha instruções sobre como ganhar dinheiro. Este é o seu novo segundo canal, onde tudo funciona!\nApresse-se para ganhar agora!",
     "es": "😱 Hoy Tristán Navarro en su canal \"Escuela de dinero\" muestra como ganar 2000 euros !!!\nTodas las condiciones se indican en el canal. No pierdas esta oportunidad ...\n\n😱 Ya hoy Tristán Navarro en su canal \"Escuela de dinero\" enseñará a cada uno de sus suscriptores a ganar 3200 euros en tan solo 15 minutos !!!\nHace seis meses, creó un canal donde comparte honestamente instrucciones sobre cómo ganar dinero. Aproximadamente 1000 personas ya trabajan con él y ganan 2000 por DÍA! Nadie retrocederá ...\n\n👇El enlace está disponible en 2 horas. Date prisa ... 👇",
-    "it": "💰 OTTIENI 4000 QUI E ORA! 💰\n\n😱 Già oggi Gianni Rizzi sul suo canale \"IL MONDO DEL DENARO\" insegnerà a ciascuno dei suoi abbonati a guadagnare 4000 euro in soli 15 minuti !!!\nSei mesi fa, ha creato un canale in cui condivide onestamente le istruzioni su come fare soldi. Già circa 3 mila persone lavorano con lui e guadagnano da 4000 al GIORNO! Nessuno si farà da parte ..\n\n👇Il collegamento è disponibile entro 2 ore. Sbrigati ... 👇",
-    "mx": "😱 Hoy Mateo Flores en su canal \"Era Financiera\" muestra como ganar 21.000 MXN !!!\nTodas las condiciones se indican en el canal. No pierdas esta oportunidad ...\n\n😱 Ya hoy Mateo Flores en su canal \"Era Financiera\" enseñará a cada uno de sus suscriptores a ganar 21.000 MXN en tan solo 15 minutos !!!\nHace seis meses, creó un canal donde comparte honestamente instrucciones sobre cómo ganar dinero. Aproximadamente 6000 personas ya trabajan con él y ganan 21.000 MXN por dia! Nadie retrocederá ...\n \n📩 Si vais a entender cómo ganar dinero en el canal, siempre podréis escribirle \"Novato\" y Mateo os va a enseñar todo paso a paso \n\n👇El enlace está disponible en 2 horas. Date prisa ..."
+    "it": "💰 OTTIENI 3000€ QUI E ORA! 💰\n\n😱 Già oggi Renzo Conte sul suo canale \"Nave di denaro\" mostra come guadagnare 3000 euro !!!\nTutte le condizioni sono indicate sul canale. Non perdere questa occasione ...\n\n👇Il collegamento è disponibile entro 2 ore. Sbrigati ...",
+    "it2": "💰 OTTIENI 2000€ QUI E ORA! 💰\n\n😱 Già oggi Renzo Conte sul suo canale \"Paese Monetario\" mostra come guadagnare 2000 euro !!!\nTutte le condizioni sono indicate sul canale. Non perdere questa occasione ...\n\n😱 Già oggi Renzo Conte sul suo canale \"Paese Monetario\" insegnerà a ciascuno dei suoi abbonati a guadagnare 2800 euro in soli 15 minuti !!!\nSei mesi fa, ha creato un canale in cui condivide onestamente le istruzioni su come fare soldi. Già circa 3 mila persone lavorano con lui e guadagnano da 2.800 al GIORNO! Nessuno si farà da parte...\n\n👇Il collegamento è disponibile entro 2 ore. Sbrigati ...",
+    "mx": "💵 Hoy Mateo Flores en su canal \"Era Financiera\" muestra como ganar  37.250 MXN !!!\nTodas las condiciones se indican en el canal. No pierdas esta oportunidad ...\n\n😱 Ya hoy Mateo Flores en su canal \"Era Financiera\" enseñará a cada uno de sus suscriptores a ganar 37.250 MXN en tan solo 15 minutos !!!\nHace seis meses, creó un canal donde comparte honestamente instrucciones sobre cómo ganar dinero. Aproximadamente 15.988 personas ya trabajan con él y ganan  37.250 MXN por dia! \n\n📩 Si vais a entender cómo ganar dinero en el canal, siempre podréis escribirle \"Novato\" y Mateo os va a enseñar todo paso a paso \n\n👇El enlace está disponible en 2 horas. Date prisa ..."
   }
 }
