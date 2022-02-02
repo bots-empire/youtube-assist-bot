@@ -17,8 +17,8 @@ import (
 func main() {
 	rand.Seed(time.Now().Unix())
 
-	logger := log.NewDefaultLogger().Prefix("Voice Bot")
-	log.PrintLogo("Voice Bot", []string{"3C91FF"})
+	logger := log.NewDefaultLogger().Prefix("YouTube Bot")
+	log.PrintLogo("YouTube Bot", []string{"FF5655"})
 
 	startServices(logger)
 	startAllBot(logger)

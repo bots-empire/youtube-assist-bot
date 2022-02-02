@@ -17,12 +17,6 @@ const (
 	redisDefaultAddr = "127.0.0.1:6379"
 )
 
-const (
-	tokensPath       = "./cfg/tokens.json"
-	dbDriver         = "mysql"
-	redisDefaultAddr = "127.0.0.1:6379"
-)
-
 var Bots = make(map[string]*GlobalBot)
 
 type GlobalBot struct {

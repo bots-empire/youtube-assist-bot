@@ -17,7 +17,7 @@ import (
 const (
 	updateBalanceQuery       = "UPDATE users SET balance = ? WHERE id = ?;"
 	updateLastVoiceQuery     = "UPDATE users SET %s = ?, %s = ? WHERE id = ?;"
-	updateCompleteTodayQuery = "UPDATE users SET completed_today = ?, completed_y = ?, completed_a = ? WHERE id = ?;"
+	updateCompleteTodayQuery = "UPDATE users SET completed_t = ?, completed_y = ?, completed_a = ? WHERE id = ?;"
 	updateAfterTaskQuery     = "UPDATE users SET balance = ?, completed = ? WHERE id = ?;"
 
 	updateAfterBonusQuery = "UPDATE users SET balance = ?, take_bonus = ? WHERE id = ?;"

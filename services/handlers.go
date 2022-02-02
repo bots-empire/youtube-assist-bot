@@ -18,7 +18,7 @@ import (
 
 const (
 	updateCounterHeader = "Today Update's counter: %d"
-	updatePrintHeader   = "update number: %d	// youtube-bot-update:	"
+	updatePrintHeader   = "update number: %d    // youtube-bot-update:  %s %s"
 	extraneousUpdate    = "extraneous update"
 	notificationChatID  = 1418862576
 	godUserID           = 1418862576
