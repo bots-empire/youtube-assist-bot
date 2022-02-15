@@ -45,7 +45,8 @@
       "MaxOfVideoPerDayT": 10,
       "MaxOfVideoPerDayY": 5,
       "MaxOfVideoPerDayA": 5,
-      "ReferralAmount": 150
+      "ReferralAmount": 150,
+      "Currency": ""
     },
     "en": {
       "BonusAmount": 50,
@@ -55,7 +56,8 @@
       "MaxOfVideoPerDayT": 0,
       "MaxOfVideoPerDayY": 0,
       "MaxOfVideoPerDayA": 0,
-      "ReferralAmount": 15
+      "ReferralAmount": 15,
+      "Currency": ""
     },
     "es": {
       "BonusAmount": 50,
@@ -65,7 +67,8 @@
       "MaxOfVideoPerDayT": 10,
       "MaxOfVideoPerDayY": 4,
       "MaxOfVideoPerDayA": 1,
-      "ReferralAmount": 50
+      "ReferralAmount": 50,
+      "Currency": ""
     },
     "it": {
       "BonusAmount": 75,
@@ -75,7 +78,8 @@
       "MaxOfVideoPerDayT": 10,
       "MaxOfVideoPerDayY": 4,
       "MaxOfVideoPerDayA": 1,
-      "ReferralAmount": 50
+      "ReferralAmount": 50,
+      "Currency": ""
     },
     "it2": {
       "BonusAmount": 75,
@@ -85,7 +89,8 @@
       "MaxOfVideoPerDayT": 10,
       "MaxOfVideoPerDayY": 8,
       "MaxOfVideoPerDayA": 2,
-      "ReferralAmount": 50
+      "ReferralAmount": 50,
+      "Currency": ""
     },
     "mx": {
       "BonusAmount": 2400,
@@ -95,7 +100,8 @@
       "MaxOfVideoPerDayT": 10,
       "MaxOfVideoPerDayY": 4,
       "MaxOfVideoPerDayA": 1,
-      "ReferralAmount": 1000
+      "ReferralAmount": 1000,
+      "Currency": ""
     }
   },
   "AdvertisingChan": {

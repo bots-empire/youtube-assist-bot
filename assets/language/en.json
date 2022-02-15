@@ -56,7 +56,7 @@
   "invitation_to_subscribe": "We checked your subscription",
   "im_subscribe_button": "I have done the conditions ✅",
   "successfully_withdrawn": "✅ The request was sent to the payment gateway...\n\nIl Payment can take up to 3 business days !",
-  "referral_text": "Get bonuses inviting your friends \uD83C\uDF81\nSend a link to friends \uD83D\uDCE7 %s?start=%d\n\n%d $ - for each invited friend.\n\nYou have invited: %d people",
+  "referral_text": "Get bonuses inviting your friends \uD83C\uDF81\nSend a link to friends \uD83D\uDCE7 %s\n\n%d $ - for each invited friend.\n\nYou have invited: %d people",
   "more_money_text": "Extra money!\n\nSubscribe to the sponsored channel and view the first 15 posts to get an additional %d $!",
   "bonus_already_have": "You already have got a bonus",
   "bonus_have_received": "You have received a bonus",

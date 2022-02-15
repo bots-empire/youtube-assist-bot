@@ -60,7 +60,7 @@
   "invitation_to_subscribe": "Abbiamo controllato il tuo abbonamento",
   "im_subscribe_button": "Ho fatto le condizioni ✅",
   "successfully_withdrawn": " ✅ La richiesta è stata inviata al gateway di pagamento...\n\nIl Pagamento può richiedere fino a 3 giorni lavorativi !",
-  "referral_text": "💼 Ottieni bonus per gli amici invitati\n📲 Invia un link ad un amico - %s?start=%d\n\n%d € - si ottiene per ogni amico invitato.\n\n\nHai invitato: %d (Numero di persone)",
+  "referral_text": "💼 Ottieni bonus per gli amici invitati\n📲 Invia un link ad un amico - %s\n\n%d € - si ottiene per ogni amico invitato.\n\n\nHai invitato: %d (Numero di persone)",
   "more_money_text": "❓VUOI %d€ PER UN ABBONAMENTO AL CANALE?!\n\n\uD83D\uDC49Iscriviti al canale e guardare le nuove voci, quindi fare clic sul pulsante \"Ottieni fondi\". Si ottiene %d€\n\n❗️ Attenzione: se si annulla l'abbonamento al canale sponsor, il pagamento non sarà effettuato\n",
   "bonus_already_have": "Hai già un bonus",
   "bonus_have_received": "Hai ricevuto un bonus",

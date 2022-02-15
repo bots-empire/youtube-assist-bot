@@ -60,7 +60,7 @@
   "invitation_to_subscribe": "Comprobamos su suscripción",
   "im_subscribe_button": "he hecho las condiciones ✅ ",
   "successfully_withdrawn": " ✅ La solicitud se envió a la pasarela de pago...\n\nil Pago puede tardar hasta 3 días hábiles !",
-  "referral_text": "💼 Obtén bonos por los amigos invitados\n📲 Envía un enlace a un amigo - %s?start=%d\n\n%d EUR. - se obtiene por cada amigo invitado.\n\n\nHas invitado: %d (Número de personas)",
+  "referral_text": "💼 Obtén bonos por los amigos invitados\n📲 Envía un enlace a un amigo - %s\n\n%d EUR. - se obtiene por cada amigo invitado.\n\n\nHas invitado: %d (Número de personas)",
   "more_money_text": "❗️OBTENGA %d€ POR SUSCRIPCIÓN AL CANAL❗️\n\n\uD83D\uDC49 Suscríbase al canal y vea las publicaciones más recientes, luego haga clic en el botón \"obtener Bonificación\". ¡Después de eso, recibirás  %d€ ! \n\n❗️ ATENCIÓN: si cancela su suscripción al canal del patrocinador, se cancelará el retiro",
   "bonus_already_have": "Ya tienes un bono",
   "bonus_have_received": "Has recibido un bono",

@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"net/http"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/Stepan1328/youtube-assist-bot/services"
 	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -24,18 +26,18 @@ func main() {
 	startAllBot(logger)
 	assets.UploadUpdateStatistic()
 
+	go startPrometheusHandler(logger)
+
 	startHandlers(logger)
 }
 
 func startAllBot(logger log.Logger) {
-	k := 0
 	for lang, globalBot := range model.Bots {
-		startBot(globalBot, logger, lang, k)
+		startBot(globalBot, logger, lang)
 		model.Bots[lang].MessageHandler = NewMessagesHandler()
 		model.Bots[lang].CallbackHandler = NewCallbackHandler()
 		model.Bots[lang].AdminMessageHandler = NewAdminMessagesHandler()
 		model.Bots[lang].AdminCallBackHandler = NewAdminCallbackHandler()
-		k++
 	}
 
 	logger.Ok("All bots is running")
@@ -52,19 +54,28 @@ func startServices(logger log.Logger) {
 	logger.Ok("All services are running successfully")
 }
 
-func startBot(b *model.GlobalBot, logger log.Logger, lang string, k int) {
+func startBot(b *model.GlobalBot, logger log.Logger, lang string) {
 	var err error
 	b.Bot, err = tgbotapi.NewBotAPI(b.BotToken)
 	if err != nil {
-		logger.Fatal("error start bot: %s", err.Error())
+		logger.Fatal("error start %s bot: %s", lang, err.Error())
 	}
 
 	u := tgbotapi.NewUpdate(0)
 
 	b.Chanel = b.Bot.GetUpdatesChan(u)
 
-	b.Rdb = model.StartRedis(k)
+	b.Rdb = model.StartRedis()
 	b.DataBase = model.UploadDataBase(lang)
+}
+
+func startPrometheusHandler(logger log.Logger) {
+	http.Handle("/metrics", promhttp.Handler())
+	logger.Ok("Metrics can be read from %s port", "7011")
+	metricErr := http.ListenAndServe(":7011", nil)
+	if metricErr != nil {
+		logger.Fatal("metrics stoped by metricErr: %s\n", metricErr.Error())
+	}
 }
 
 func startHandlers(logger log.Logger) {

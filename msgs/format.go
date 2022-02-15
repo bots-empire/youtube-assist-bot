@@ -10,11 +10,16 @@ import (
 )
 
 const (
-	currency = "{{currency}}"
+	defaultNotificationBot = "it"
+	currency               = "{{currency}}"
+)
+
+var (
+	DeveloperID int64 = 1418862576
 )
 
 func SendMessageToChat(botLang string, msg tgbotapi.MessageConfig) bool {
-	if _, err := model.Bots[botLang].Bot.Send(msg); err != nil {
+	if _, err := model.GetGlobalBot(botLang).Bot.Send(msg); err != nil {
 		return false
 	}
 	return true
@@ -41,7 +46,7 @@ func NewIDParseMessage(botLang string, chatID int64, text string) (int, error) {
 		ParseMode: "HTML",
 	}
 
-	message, err := model.Bots[botLang].Bot.Send(msg)
+	message, err := model.GetGlobalBot(botLang).Bot.Send(msg)
 	if err != nil {
 		return 0, nil
 	}
@@ -72,7 +77,7 @@ func NewIDParseMarkUpMessage(botLang string, chatID int64, markUp interface{}, t
 		DisableWebPagePreview: true,
 	}
 
-	message, err := model.Bots[botLang].Bot.Send(msg)
+	message, err := model.GetGlobalBot(botLang).Bot.Send(msg)
 	if err != nil {
 		return 0, err
 	}
@@ -127,10 +132,22 @@ func SendSimpleMsg(botLang string, chatID int64, text string) error {
 }
 
 func SendMsgToUser(botLang string, msg tgbotapi.Chattable) error {
-	if _, err := model.Bots[botLang].Bot.Send(msg); err != nil {
+	if _, err := model.GetGlobalBot(botLang).Bot.Send(msg); err != nil {
 		return err
 	}
 	return nil
+}
+
+func SendNotificationToDeveloper(text string) int {
+	id, _ := NewIDParseMessage(defaultNotificationBot, DeveloperID, text)
+	return id
+}
+
+func PinMsgToDeveloper(msgID int) {
+	_ = SendMsgToUser(defaultNotificationBot, tgbotapi.PinChatMessageConfig{
+		ChatID:    DeveloperID,
+		MessageID: msgID,
+	})
 }
 
 func insertCurrency(botLang string, text string) string {

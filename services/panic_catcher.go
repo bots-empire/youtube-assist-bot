@@ -7,7 +7,6 @@ import (
 
 	"github.com/Stepan1328/youtube-assist-bot/log"
 	"github.com/Stepan1328/youtube-assist-bot/msgs"
-	"github.com/Stepan1328/youtube-assist-bot/services/administrator"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -28,14 +27,12 @@ func panicCather(botLang string, update *tgbotapi.Update) {
 	)
 	panicLogger.Warn(panicText)
 
-	alertMsg := tgbotapi.NewMessage(notificationChatID, panicText)
-	_ = msgs.SendMsgToUser(administrator.DefaultNotificationBot, alertMsg)
+	msgs.SendNotificationToDeveloper(panicText)
 
 	data, err := json.MarshalIndent(update, "", "  ")
 	if err != nil {
 		return
 	}
 
-	updateDataMsg := tgbotapi.NewMessage(notificationChatID, string(data))
-	_ = msgs.SendMsgToUser(administrator.DefaultNotificationBot, updateDataMsg)
+	msgs.SendNotificationToDeveloper(string(data))
 }

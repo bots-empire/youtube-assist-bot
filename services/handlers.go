@@ -135,6 +135,11 @@ func printNewUpdate(botLang string, update *tgbotapi.Update, logger log.Logger) 
 	assets.UpdateStatistic.Counter++
 	assets.SaveUpdateStatistic()
 
+	model.HandleUpdates.WithLabelValues(
+		model.GetGlobalBot(botLang).BotLink,
+		botLang,
+	).Inc()
+
 	if update.Message != nil {
 		if update.Message.Text != "" {
 			logger.Info(updatePrintHeader, assets.UpdateStatistic.Counter, botLang, update.Message.Text)
@@ -152,11 +157,8 @@ func printNewUpdate(botLang string, update *tgbotapi.Update, logger log.Logger) 
 
 func sendTodayUpdateMsg() {
 	text := fmt.Sprintf(updateCounterHeader, assets.UpdateStatistic.Counter)
-	msgID, _ := msgs.NewIDParseMessage(administrator.DefaultNotificationBot, 1418862576, text)
-	_ = msgs.SendMsgToUser(administrator.DefaultNotificationBot, tgbotapi.PinChatMessageConfig{
-		ChatID:    notificationChatID,
-		MessageID: msgID,
-	})
+	id := msgs.SendNotificationToDeveloper(text)
+	msgs.PinMsgToDeveloper(id)
 
 	assets.UpdateStatistic.Counter = 0
 	assets.UpdateStatistic.Day = int(time.Now().Unix()) / 86400
@@ -534,8 +536,18 @@ func NewMoneyForAFriendCommand() *MoneyForAFriendCommand {
 func (c *MoneyForAFriendCommand) Serve(s model.Situation) error {
 	db.RdbSetUser(s.BotLang, s.User.ID, "main")
 
-	text := msgs.GetFormatText(s.User.Language, "referral_text", model.GetGlobalBot(s.BotLang).BotLink,
-		s.User.ID, assets.AdminSettings.Parameters[s.BotLang].ReferralAmount, s.User.ReferralCount)
+	link, err := model.EncodeLink(s.BotLang, &model.ReferralLinkInfo{
+		ReferralID: s.User.ID,
+		Source:     "bot",
+	})
+	if err != nil {
+		return err
+	}
+
+	text := msgs.GetFormatText(s.User.Language, "referral_text",
+		link,
+		assets.AdminSettings.Parameters[s.BotLang].ReferralAmount,
+		s.User.ReferralCount)
 
 	return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 }
@@ -684,7 +696,8 @@ func (c *MaintenanceModeOffCommand) Serve(s model.Situation) error {
 }
 
 func simpleAdminMsg(s model.Situation, key string) error {
-	text := assets.AdminText(s.User.Language, key)
+	lang := assets.AdminLang(s.User.ID)
+	text := assets.AdminText(lang, key)
 	msg := tgbotapi.NewMessage(s.User.ID, text)
 
 	return msgs.SendMsgToUser(s.BotLang, msg)

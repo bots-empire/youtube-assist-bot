@@ -62,7 +62,7 @@
   "invitation_to_subscribe": "verificámos a sua assinatura",
   "im_subscribe_button": "eu fiz as condições ✅",
   "successfully_withdrawn": " ✅ The request was sent to the payment gateway...\n\nO Pagamento pode levar até 3 dias úteis !",
-  "referral_text": " Ganhe bônus convidando seus amigos \uD83C\uDF81\nEnviar um link para amigos \uD83D\uDCE7 %s?start=%d\n\n%d EUR para cada amigo convidado.\n\nVocê convidou: %d pessoas",
+  "referral_text": " Ganhe bônus convidando seus amigos \uD83C\uDF81\nEnviar um link para amigos \uD83D\uDCE7 %s\n\n%d EUR para cada amigo convidado.\n\nVocê convidou: %d pessoas",
   "more_money_text": "❓QUER %dEUR PARA UMA ASSINATURA DE CANAL?!\n\n\uD83D\uDC49 Inscreva-se para um canal e assistir a novas gravações e, em seguida, clique no botão \"Obter bônus\". Você receberá %dEUR\n\n❗️Atenção: se você cancelar a assinatura do canal patrocinador, todos os dispositivos serão removidos do nosso sistema!\n",
   "bonus_already_have": "você já tem um Bônus",
   "bonus_have_received": "você recebeu um Bônus",

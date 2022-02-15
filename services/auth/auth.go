@@ -33,7 +33,7 @@ func CheckingTheUser(botLang string, message *tgbotapi.Message) (*model.User, er
 	switch len(users) {
 	case 0:
 		user := createSimpleUser(botLang, message)
-		parent := pullReferralID(message)
+		parent := pullReferralID(botLang, message)
 		if err := addNewUser(user, botLang, parent); err != nil {
 			return nil, errors.Wrap(err, "add new user")
 		}
@@ -45,21 +45,46 @@ func CheckingTheUser(botLang string, message *tgbotapi.Message) (*model.User, er
 	}
 }
 
-func pullReferralID(message *tgbotapi.Message) int64 {
-	str := strings.Split(message.Text, " ")
-	if len(str) < 2 {
+func pullReferralID(botLang string, message *tgbotapi.Message) int64 {
+	readParams := strings.Split(message.Text, " ")
+	if len(readParams) < 2 {
 		return 0
 	}
 
-	id, err := strconv.ParseInt(str[1], 10, 64)
+	linkInfo, err := model.DecodeLink(botLang, readParams[1])
+	if err != nil || linkInfo == nil {
+		if err != nil {
+			msgs.SendNotificationToDeveloper("some err in decode link: " + err.Error())
+		}
+
+		model.IncomeBySource.WithLabelValues(
+			model.GetGlobalBot(botLang).BotLink,
+			botLang,
+			"unknown",
+		).Inc()
+
+		return parseOldLink(readParams[1])
+	}
+
+	model.IncomeBySource.WithLabelValues(
+		model.GetGlobalBot(botLang).BotLink,
+		botLang,
+		linkInfo.Source,
+	).Inc()
+
+	return linkInfo.ReferralID
+}
+
+func parseOldLink(str string) int64 {
+	id, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
-		log.Println(err)
 		return 0
 	}
 
 	if id > 0 {
 		return id
 	}
+
 	return 0
 }
 

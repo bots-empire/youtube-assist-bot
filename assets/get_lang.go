@@ -22,8 +22,8 @@ var (
 	AvailableLang      = []string{"it", "it2", "br", "es", "mx", "en" /*, "de"*/}
 
 	Commands     = make(map[string]string)
-	Language     = make([]map[string]string, len(AvailableLang))
-	AdminLibrary = make([]map[string]string, 2)
+	Language     = make(map[string]map[string]string)
+	AdminLibrary = make(map[string]map[string]string)
 	Tasks        = make(map[string]Task, len(AvailableLang))
 )
 
@@ -40,15 +40,17 @@ type Link struct {
 }
 
 func ParseLangMap() {
-	for i, lang := range AvailableLang {
+	for _, lang := range AvailableLang {
 		bytes, _ := os.ReadFile(beginningOfUserLangPath + lang + jsonFormatName)
-		_ = json.Unmarshal(bytes, &Language[i])
+		dictionary := make(map[string]string)
+		_ = json.Unmarshal(bytes, &dictionary)
+
+		Language[lang] = dictionary
 	}
 }
 
 func LangText(lang, key string) string {
-	index := findLangIndex(lang)
-	return Language[index][key]
+	return Language[lang][key]
 }
 
 func ParseTasks() {
@@ -99,20 +101,22 @@ func ParseCommandsList() {
 }
 
 func ParseAdminMap() {
-	for i, lang := range AvailableAdminLang {
+	for _, lang := range AvailableAdminLang {
 		bytes, _ := os.ReadFile(beginningOfAdminLangPath + lang + jsonFormatName)
-		_ = json.Unmarshal(bytes, &AdminLibrary[i])
+		dictionary := make(map[string]string)
+		_ = json.Unmarshal(bytes, &dictionary)
+
+		AdminLibrary[lang] = dictionary
 	}
 }
 
 func AdminText(lang, key string) string {
-	index := findAdminLangIndex(lang)
-	return AdminLibrary[index][key]
+	return AdminLibrary[lang][key]
 }
 
 func GetCommandFromText(s model.Situation) (string, error) {
 	searchText := getSearchText(s.Message)
-	for key, text := range Language[findLangIndex(s.User.Language)] {
+	for key, text := range Language[s.User.Language] {
 		if text == searchText {
 			return Commands[key], nil
 		}
@@ -139,7 +143,7 @@ func getSearchText(message *tgbotapi.Message) string {
 
 func searchInCommandAdmins(userID int64, searchText string) string {
 	lang := getAdminLang(userID)
-	for key, text := range AdminLibrary[findAdminLangIndex(lang)] {
+	for key, text := range AdminLibrary[lang] {
 		if text == searchText {
 			return Commands[key]
 		}
@@ -154,24 +158,6 @@ func getAdminLang(userID int64) string {
 		}
 	}
 	return ""
-}
-
-func findLangIndex(lang string) int {
-	for i, elem := range AvailableLang {
-		if elem == lang {
-			return i
-		}
-	}
-	return 0
-}
-
-func findAdminLangIndex(lang string) int {
-	for i, elem := range AvailableAdminLang {
-		if elem == lang {
-			return i
-		}
-	}
-	return 0
 }
 
 func AdminLang(userID int64) string {

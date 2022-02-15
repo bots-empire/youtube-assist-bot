@@ -1,15 +1,15 @@
 package administrator
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
 	"github.com/Stepan1328/youtube-assist-bot/assets"
 	"github.com/Stepan1328/youtube-assist-bot/db"
 	"github.com/Stepan1328/youtube-assist-bot/model"
-	msgs "github.com/Stepan1328/youtube-assist-bot/msgs"
+	"github.com/Stepan1328/youtube-assist-bot/msgs"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/pkg/errors"
 )
 
 type AdminMessagesHandlers struct {
@@ -28,6 +28,7 @@ func (h *AdminMessagesHandlers) Init() {
 	h.OnCommand("/advertisement_setting", NewAdvertisementSettingCommand())
 	h.OnCommand("/change_text_url", NewSetNewTextUrlCommand())
 	h.OnCommand("/change_parameter", NewUpdateParameterCommand())
+	h.OnCommand("/get_new_source", NewGetNewSourceCommand())
 
 	//Change Link List command
 	h.OnCommand("/add_link", NewAddLinkToListCommand())

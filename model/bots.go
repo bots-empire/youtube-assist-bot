@@ -60,11 +60,11 @@ func UploadDataBase(dbLang string) *sql.DB {
 	return dataBase
 }
 
-func StartRedis(k int) *redis.Client {
+func StartRedis() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     redisDefaultAddr,
 		Password: "", // no password set
-		DB:       k,  // use default DB
+		DB:       0,  // use default DB
 	})
 	return rdb
 }
