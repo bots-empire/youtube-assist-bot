@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -44,7 +45,9 @@ func (h *CallBackHandlers) OnCommand(command string, handler model.Handler) {
 func checkCallbackQuery(s model.Situation, logger log.Logger) {
 	if strings.Contains(s.Params.Level, "admin") {
 		if err := administrator.CheckAdminCallback(s); err != nil {
-			logger.Warn("error with serve admin callback command: %s", err.Error())
+			text := fmt.Sprintf("error with serve admin callback command: %s", err.Error())
+			logger.Warn(text)
+			msgs.SendNotificationToDeveloper(text)
 		}
 		return
 	}
@@ -54,13 +57,17 @@ func checkCallbackQuery(s model.Situation, logger log.Logger) {
 
 	if Handler != nil {
 		if err := Handler.Serve(s); err != nil {
-			logger.Warn("error with serve user callback command: %s", err.Error())
+			text := fmt.Sprintf("error with serve user callback command: %s", err.Error())
+			logger.Warn(text)
+			msgs.SendNotificationToDeveloper(text)
 			smthWentWrong(s.BotLang, s.CallbackQuery.Message.Chat.ID, s.User.Language)
 		}
 		return
 	}
 
-	logger.Warn("get callback data='%s', but they didn't react in any way", s.CallbackQuery.Data)
+	text := fmt.Sprintf("get callback data='%s', but they didn't react in any way", s.CallbackQuery.Data)
+	logger.Warn(text)
+	msgs.SendNotificationToDeveloper(text)
 }
 
 type GetBonusCommand struct {

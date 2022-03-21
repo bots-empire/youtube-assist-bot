@@ -212,7 +212,9 @@ func checkMessage(situation model.Situation, logger log.Logger) {
 		if Handler != nil {
 			err := Handler.Serve(situation)
 			if err != nil {
-				logger.Warn("error with serve user msg command: %s", err.Error())
+				text := fmt.Sprintf("error with serve user msg command: %s", err.Error())
+				logger.Warn(text)
+				msgs.SendNotificationToDeveloper(text)
 				smthWentWrong(situation.BotLang, situation.Message.Chat.ID, situation.User.Language)
 			}
 			return
@@ -227,7 +229,9 @@ func checkMessage(situation model.Situation, logger log.Logger) {
 	if Handler != nil {
 		err := Handler.Serve(situation)
 		if err != nil {
-			logger.Warn("error with serve user level command: %s", err.Error())
+			text := fmt.Sprintf("error with serve user level command: %s", err.Error())
+			logger.Warn(text)
+			msgs.SendNotificationToDeveloper(text)
 			smthWentWrong(situation.BotLang, situation.Message.Chat.ID, situation.User.Language)
 		}
 		return
@@ -434,13 +438,13 @@ func NewWithdrawalMethodCommand() *WithdrawalMethodCommand {
 func (c *WithdrawalMethodCommand) Serve(s model.Situation) error {
 	db.RdbSetUser(s.BotLang, s.User.ID, "/withdrawal_req_amount")
 
-	lang := auth.GetLang(s.BotLang, s.User.ID)
-	msg := tgbotapi.NewMessage(s.User.ID, assets.LangText(lang, "request_number_email"))
-	msg.ReplyMarkup = msgs.NewMarkUp(
-		msgs.NewRow(msgs.NewDataButton("withdraw_cancel")),
-	).Build(lang)
+	text := assets.LangText(s.User.Language, "request_number_email")
 
-	return msgs.SendMsgToUser(s.BotLang, msg)
+	markUp := msgs.NewMarkUp(
+		msgs.NewRow(msgs.NewDataButton("withdraw_cancel")),
+	).Build(s.User.Language)
+
+	return msgs.NewParseMarkUpMessage(s.BotLang, s.User.ID, &markUp, text)
 }
 
 type WithdrawalMethodPixCommand struct {

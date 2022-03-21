@@ -23,8 +23,7 @@ func panicCather(botLang string, update *tgbotapi.Update) {
 	panicText := fmt.Sprintf("%s\npanic in backend: message = %s\n%s",
 		botLang,
 		msg,
-		string(debug.Stack()),
-	)
+		string(debug.Stack()))
 	panicLogger.Warn(panicText)
 
 	msgs.SendNotificationToDeveloper(panicText)
