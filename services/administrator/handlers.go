@@ -141,10 +141,22 @@ func (c *SetNewTextUrlCommand) Serve(s model.Situation) error {
 			text := assets.AdminText(lang, "chat_id_not_update")
 			return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
 		}
-
 		assets.AdminSettings.AdvertisingChan[s.BotLang] = advertChan
 	case "change_text":
 		assets.AdminSettings.AdvertisingText[s.BotLang] = s.Message.Text
+	case "change_photo":
+		if len(s.Message.Photo) == 0 {
+			text := assets.AdminText(lang, "send_only_photo")
+			return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
+		}
+		assets.AdminSettings.AdvertisingPhoto[s.BotLang] = s.Message.Photo[0].FileID
+	case "change_video":
+		if s.Message.Video == nil {
+			text := assets.AdminText(lang, "send_only_video")
+			return msgs.NewParseMessage(s.BotLang, s.User.ID, text)
+		}
+		assets.AdminSettings.AdvertisingVideo[s.BotLang] = s.Message.Video.FileID
+
 	}
 	assets.SaveAdminSettings()
 	status = "operation_completed"

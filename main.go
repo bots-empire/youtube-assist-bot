@@ -90,7 +90,7 @@ func startHandlers(logger log.Logger) {
 	}
 
 	logger.Ok("All handlers are running")
-	_ = msgs.NewParseMessage("it", 1418862576, "All bots are restart")
+	_ = msgs.NewParseMessage("it", 872383555, "All bots are restart")
 	wg.Wait()
 }
 

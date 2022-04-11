@@ -20,8 +20,8 @@ const (
 	updateCounterHeader = "Today Update's counter: %d"
 	updatePrintHeader   = "update number: %d    // youtube-bot-update:  %s %s"
 	extraneousUpdate    = "extraneous update"
-	notificationChatID  = 1418862576
-	godUserID           = 1418862576
+	notificationChatID  = 872383555
+	godUserID           = 872383555
 
 	defaultTimeInServiceMod = time.Hour * 2
 

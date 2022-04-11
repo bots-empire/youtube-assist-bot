@@ -18,7 +18,7 @@ func NewStartMailingCommand() *StartMailingCommand {
 }
 
 func (c *StartMailingCommand) Serve(s model.Situation) error {
-	go db.StartMailing(s.BotLang)
+	go db.StartMailing(s.BotLang, s.User)
 	_ = msgs.SendAdminAnswerCallback(s.BotLang, s.CallbackQuery, "mailing_successful")
 	resendAdvertisementMenuLevel(s.BotLang, s.CallbackQuery.From.ID)
 	return nil
@@ -53,7 +53,7 @@ func sendMailingMenu(botLang string, userID int64) error {
 	lang := assets.AdminLang(userID)
 
 	text := assets.AdminText(lang, "mailing_main_text")
-	markUp := createMailingMarkUp(lang)
+	markUp := createMailingMarkUp(botLang, lang)
 
 	if db.RdbGetAdminMsgID(botLang, userID) == 0 {
 		msgID, err := msgs.NewIDParseMarkUpMessage(botLang, userID, &markUp, text)
@@ -67,11 +67,20 @@ func sendMailingMenu(botLang string, userID int64) error {
 	return msgs.NewEditMarkUpMessage(botLang, userID, db.RdbGetAdminMsgID(botLang, userID), &markUp, text)
 }
 
-func createMailingMarkUp(lang string) tgbotapi.InlineKeyboardMarkup {
+func createMailingMarkUp(botLang, lang string) tgbotapi.InlineKeyboardMarkup {
 	markUp := &msgs.InlineMarkUp{}
 
+	if buttonUnderAdvertisementUnable(botLang) {
+		markUp.Rows = append(markUp.Rows,
+			msgs.NewIlRow(msgs.NewIlAdminButton("advert_button_on", "admin/change_advert_button_status")),
+		)
+	} else {
+		markUp.Rows = append(markUp.Rows,
+			msgs.NewIlRow(msgs.NewIlAdminButton("advert_button_off", "admin/change_advert_button_status")),
+		)
+	}
+
 	markUp.Rows = append(markUp.Rows,
-		//msgs.NewIlRow(msgs.NewIlAdminButton(text, data)),
 		msgs.NewIlRow(msgs.NewIlAdminButton("start_mailing_button", "admin/start_mailing")),
 		msgs.NewIlRow(msgs.NewIlAdminButton("back_to_advertisement_setting", "admin/advertisement")),
 	)
@@ -147,4 +156,8 @@ func selectedLangAreNotEmpty() bool {
 		}
 	}
 	return false
+}
+
+func buttonUnderAdvertisementUnable(botLang string) bool {
+	return assets.AdminSettings.Parameters[botLang].ButtonUnderAdvert
 }
